@@ -1,26 +1,20 @@
+import cors from 'cors';
 import morgan from 'morgan';
 import express from 'express';
-import cors from 'cors';
+import mongoose from 'mongoose';
 
 import httpStatusCode from './utils/enums/httpStatusCode.js';
-import citycontroller from './api/controllers/city.controller.js';
-import filmController from './api/controllers/film.controller.js';
-import actorController from './api/controllers/actor.controller.js';
-import countryController from './api/controllers/country.controller.js';
-import categoryController from './api/controllers/category.controller.js';
-
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import courseController from './api/controllers/course.controller.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 const PORT = 3000 || process.env.PORT;
-app.use(express.static('public'));
+mongoose.connect(process.env.URL_DATABASE, { useNewUrlParser: true, useUnifiedTopology: true });
 
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
-app.use(express.static('public'));
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/home.html');
@@ -32,11 +26,7 @@ app.get('/category', (req, res) => {
   res.sendFile(__dirname + '/views/crud-category.html');
 })
 
-app.use('/api/city-controller', citycontroller)
-app.use('/api/film-controller', filmController)
-app.use('/api/actor-controller', actorController)
-app.use('/api/country-controller', countryController)
-app.use('/api/category-controller', categoryController)
+app.use('/api/course-controller', courseController)
 
 
 app.use((req, res, next) => {

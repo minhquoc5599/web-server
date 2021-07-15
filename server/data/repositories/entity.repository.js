@@ -1,41 +1,29 @@
-import db from '../../utils/db.js';
-import operatorType from '../../utils/enums/operatorType.js';
-
-export default nameEntity => {
+export default _context => {
   return {
     //CREATE
-    addEntity(entity) {
-      return db(nameEntity)
-        .insert(entity)
-        .catch(() => operatorType.FAIL.CREATE);
+    addOne({ entity }) {
+      return entity.save();
     },
 
     //READ
-    getEntities() {
-      return db(nameEntity)
-        .catch(() => operatorType.FAIL.READ);
+    getAll() {
+      return _context.find({}).exec();
     },
 
-    getEntityById(id) {
-      return db(nameEntity)
-        .where(nameEntity + '_id', id)
-        .catch(() => operatorType.FAIL.READ);
+    getOneById({ id }) {
+      return _context.findById(id).exec();
     },
 
     //UPDATE
-    updateEntity(entity, id) {
-      return db(nameEntity)
-        .where(nameEntity + '_id', id)
-        .update(entity)
-        .catch(() => operatorType.FAIL.UPDATE);
+    async updateOne({ entity, id }) {
+      await _context.updateOne({ _id: id }, { $set: entity })
+      return await _context.save();
     },
 
     //DELETE
-    deleteEntity(id) {
-      return db(nameEntity)
-        .where(nameEntity + '_id', id)
-        .del()
-        .catch(() => operatorType.FAIL.DELETE);
+    async deleteOne({ id }) {
+      await _context.deleteOne({ _id: id });
+      return await _context.save();
     }
   }
 };
