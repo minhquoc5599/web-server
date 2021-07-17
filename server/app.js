@@ -4,6 +4,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 
 import httpStatusCode from './utils/enums/httpStatusCode.js';
+import userController from './api/controllers/user.controller.js';
 import courseController from './api/controllers/course.controller.js';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -26,7 +27,8 @@ app.get('/category', (req, res) => {
   res.sendFile(__dirname + '/views/crud-category.html');
 })
 
-app.use('/api/course-controller', courseController)
+app.use('/api/user-controller', userController);
+app.use('/api/course-controller', courseController);
 
 
 app.use((req, res, next) => {
