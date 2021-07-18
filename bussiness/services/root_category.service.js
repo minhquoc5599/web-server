@@ -2,7 +2,7 @@ import RootCategory from '../../models/root_category.js'
 import categoryResponseEnum from '../../utils/enums/categoryResponseEnum.js';
 import rootCategoryReposity from '../../data/repositories/root_category.repository.js';
 import operatorType from '../../utils/enums/operatorType.js';
-import rootCategoryValidator from '../../api/validators/rootCateogoryValidator.js';
+import rootCategoryValidator from '../../api/validators/rootCategoryValidator.js';
 const rootCategoryService = {
   async getAll() {
     try {
@@ -23,7 +23,7 @@ const rootCategoryService = {
     // Validate request
     const resultValidator = rootCategoryValidator(name);
     if (!resultValidator.isSuccess) return resultValidator;
-    let root_category = await rootCategoryReposity.getRootCategoriesByName(name);
+    let root_category = await rootCategoryReposity.getRootCategoryByName(name);
     if (root_category === operatorType.FAIL.READ) {
       return {
         isSuccess: false,
@@ -37,7 +37,7 @@ const rootCategoryService = {
       };
     }
     // Save root category to DB
-    root_category = new RootCategory(name);
+    root_category = new RootCategory({ name });
     console.log(root_category);
     const addResult = await rootCategoryReposity.addRootCategory(root_category);
     if (addResult == operatorType.FAIL.CREATE) {
@@ -53,8 +53,8 @@ const rootCategoryService = {
     }
   },
 
-  async getRootCategoriesById(id) {
-    const root_category = await rootCategoryReposity.getRootCategoriesById(id);
+  async getRootCategoryById(id) {
+    const root_category = await rootCategoryReposity.getRootCategoryById(id);
     if (root_category === operatorType.FAIL.READ) {
       return {
         isSuccess: false,

@@ -15,13 +15,13 @@ const rootCategoryReposity = {
       operatorType.FAIL.READ
     });
   },
-  getRootCategoriesById(id) {
+  getRootCategoryById(id) {
     return RootCategory.findById(id).catch(() => {
       operatorType.FAIL.READ
     })
   },
-  getRootCategoriesByName(name) {
-    return RootCategory.findOne(name).catch(() => {
+  getRootCategoryByName(name) {
+    return RootCategory.findOne({ name: name }).catch(() => {
       operatorType.FAIL.READ
     })
   },

@@ -7,6 +7,7 @@ import httpStatusCode from './utils/enums/httpStatusCode.js';
 import userController from './api/controllers/user.controller.js';
 import courseController from './api/controllers/course.controller.js';
 import rootCategoryController from './api/controllers/root_category.controller.js';
+import categoryController from './api/controllers/category.controller.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.get('/category', (req, res) => {
 app.use('/api/user-controller', userController);
 app.use('/api/course-controller', courseController);
 app.use('/api/root-category-controller', rootCategoryController);
+app.use('/api/category-controller', categoryController);
 
 
 app.use((req, res, next) => {
