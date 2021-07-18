@@ -33,8 +33,10 @@ const rootCategoryReposity = {
     })
   },
   //DELETE
-  deleteRootCategory(name) {
-
+  deleteRootCategory(id) {
+    return RootCategory.deleteOne({ _id: id }).catch(() => {
+      operatorType.FAIL.DELETE
+    })
   }
 }
 

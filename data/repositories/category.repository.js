@@ -14,6 +14,11 @@ const categoryRepository = {
       operatorType.FAIL.READ
     });
   },
+  getCategoriesById(root_category_id) { // By root_category_id
+    return Category.find({ root_category_id: root_category_id }).catch(() => {
+      operatorType.FAIL.READ
+    })
+  },
   getCategoryById(id) {
     return Category.findById(id).catch(() => {
       operatorType.FAIL.READ

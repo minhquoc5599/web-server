@@ -41,5 +41,32 @@ router.get('/root-category-by-id/:id', async(req, res) => {
   }
   res.status(httpStatusCode.SUCCESS.OK)
     .json(result);
+});
+
+router.post('/update-root-category', async(req, res) => {
+  const { id, name } = req.body;
+  const result = await rootCategoryService.updateRootCategory(id, name);
+  if (!result.isSuccess) {
+    res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
+      .json(result)
+      .end();
+    return;
+  }
+  res.status(httpStatusCode.SUCCESS.OK)
+    .json(result);
+});
+
+router.post('/delete-root-category', async(req, res) => {
+  const { id } = req.body;
+  const result = await rootCategoryService.deleteRootCategory(id);
+  if (!result.isSuccess) {
+    res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
+      .json(result)
+      .end();
+    return;
+  }
+  res.status(httpStatusCode.SUCCESS.OK)
+    .json(result);
 })
+
 export default router;
