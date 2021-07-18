@@ -41,5 +41,19 @@ router.get('/category-by-id/:id', async(req, res) => {
   }
   res.status(httpStatusCode.SUCCESS.OK)
     .json(result);
-})
+});
+
+router.post('/update-category', async(req, res) => {
+  const { id, name } = req.body;
+  const result = await categoryService.updateCategory(id, name);
+  if (!result.isSuccess) {
+    res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
+      .json(result)
+      .end();
+    return;
+  }
+  res.status(httpStatusCode.SUCCESS.OK)
+    .json(result);
+});
+
 export default router;
