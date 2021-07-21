@@ -43,7 +43,7 @@ router.get('/category-by-id/:id', async(req, res) => {
     .json(result);
 });
 
-router.post('/update-category', async(req, res) => {
+router.put('/update-category', async(req, res) => {
   const { id, name } = req.body;
   const result = await categoryService.updateCategory(id, name);
   if (!result.isSuccess) {

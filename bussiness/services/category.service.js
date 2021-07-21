@@ -29,7 +29,6 @@ const categoryService = {
 
     // Check name category is available or not
     let category = await categoryRepository.getCategoryByName(name);
-    console.log(category);
     if (category === operatorType.FAIL.READ) {
       return {
         isSuccess: false,

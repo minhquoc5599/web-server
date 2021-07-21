@@ -15,8 +15,8 @@ router.post('/add-subscriber', async(req, res) => {
   }
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 })
-router.get('/subscribers-by-course-id/:id', async(req, res) => {
-  const course_id = req.params.id;
+router.get('/subscribers-by-course-id', async(req, res) => {
+  const { course_id } = req.body;
   const result = await subscriberService.getSubscribersByCourseId(course_id);
   if (!result.isSuccess) {
     res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
@@ -27,8 +27,8 @@ router.get('/subscribers-by-course-id/:id', async(req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 });
 
-router.get('/subscribers-rating-by-course-id/:id', async(req, res) => {
-  const course_id = req.params.id;
+router.get('/subscribers-rating-by-course-id', async(req, res) => {
+  const { course_id } = req.body;
   const result = await subscriberService.getSubscribersRatingByCourseId(course_id)
   if (!result.isSuccess) {
     res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
@@ -39,7 +39,7 @@ router.get('/subscribers-rating-by-course-id/:id', async(req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 });
 
-router.post('/update-subscriber', async(req, res) => {
+router.put('/update-subscriber', async(req, res) => {
   const { course_id, student_id, rating, comment } = req.body;
   const result = await subscriberService.updateSubscriber(course_id, student_id, rating, comment);
   if (!result.isSuccess) {

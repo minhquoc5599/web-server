@@ -43,7 +43,7 @@ router.get('/root-category-by-id/:id', async(req, res) => {
     .json(result);
 });
 
-router.post('/update-root-category', async(req, res) => {
+router.put('/update-root-category', async(req, res) => {
   const { id, name } = req.body;
   const result = await rootCategoryService.updateRootCategory(id, name);
   if (!result.isSuccess) {
