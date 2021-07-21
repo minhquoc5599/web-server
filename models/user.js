@@ -7,7 +7,8 @@ var userSchema = new Schema({
   password: { type: String, require: true, max: 50 },
   role: { type: Schema.Types.ObjectId, ref: 'role' },
   status: { type: Boolean, require: true },
-  refresh_token: { type: String, max: 500 }
+  refresh_token: { type: String, max: 500 },
+  refresh_token_expiry_time: { type: Number },
 });
 
 export default mongoose.model('user', userSchema);
