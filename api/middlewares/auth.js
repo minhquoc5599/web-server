@@ -9,7 +9,6 @@ import httpStatusCode from '../../utils/enums/httpStatusCode.js';
 const _entityRepository = entityRepository(User);
 
 const auth = async (req, res, next) => {
-  next();
   // Get token from cookie
   const accessToken = req.cookies['access_token'];
   const refreshToken = req.cookies['refresh_token'];
@@ -25,12 +24,12 @@ const auth = async (req, res, next) => {
   }
   // Token whether is valid or not
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
     const exp = decoded.exp;
     if (dateNow >= exp * 1000) {
       const user = await _entityRepository.getOneById(decoded.user.id);
       const refreshTokenExpiryTime = user.refresh_token_expiry_time;
-      if (refreshToken !== user.refresh_token || dateNow >= refreshTokenExpiryTime * 1000) {
+      if (refreshToken !== user.refresh_token || dateNow >= refreshTokenExpiryTime) {
         res.status(httpStatusCode.CLIENT_ERRORS.UNAUTHORIZED)
           .json({
             code: jwtEnum.TOKEN_IS_EXPIRED

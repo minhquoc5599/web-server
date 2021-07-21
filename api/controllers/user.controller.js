@@ -5,6 +5,7 @@ import userService from '../../bussiness/services/user.service.js';
 import httpStatusCode from '../../utils/enums/httpStatusCode.js';
 import logInResponseEnum from '../../utils/enums/logInResponseEnum.js';
 import registerResponseEnum from '../../utils/enums/registerResponseEnum.js';
+import user from '../../models/user.js';
 
 const router = Router();
 
@@ -41,7 +42,12 @@ router.delete("/refresh-token", auth, async (req, res) => {
 })
 
 router.get("/user", auth, async (req, res) => {
-  res.status(httpStatusCode.SUCCESS.OK).end();
+  const result = await userService.getSelfInfo(req.user.id);
+  res.status(httpStatusCode.SUCCESS.OK).json({
+    email: result.user.email,
+    name: result.user.name,
+    role: req.user.role
+  }).end();
 })
 
 router.post('/auth/token', auth, async (req, res) => {

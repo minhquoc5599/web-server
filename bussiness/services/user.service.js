@@ -20,71 +20,85 @@ const _entityRepository = entityRepository(User);
 const userService = {
   async login(email, password) {
     // validate request
-    const resultValidator = logInValidator(email, password);
-    if (resultValidator !== registerResponseEnum.SUCCESS) return resultValidator;
-    // Find email in DB
-    const user = await userRepository.getOneByEmail(email);
-    if (!user) {
+    try {
+      const resultValidator = logInValidator(email, password);
+      if (resultValidator !== registerResponseEnum.SUCCESS) return resultValidator;
+      // Find email in DB
+      const user = await userRepository.getOneByEmail(email);
+      if (!user) {
+        return {
+          code: logInResponseEnum.WRONG_EMAIL
+        };
+      }
+      // Comparate password from DB and password from request
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return {
+          code: logInResponseEnum.WRONG_PASSWORD
+        };
+      }
+      // Generate Token
+      const resultJwtGenerator = await jwtGenerator.createToken(user);
+      if (!resultJwtGenerator.isSuccess) resultJwtGenerator;
+      // Save refresh token in DB
+      const dateNow = Date.now() + 5259600000;
+      user.refresh_token = resultJwtGenerator.refreshToken;
+      user.refresh_token_expiry_time = dateNow;
+      await _entityRepository.updateOne(user);
       return {
-        code: logInResponseEnum.WRONG_EMAIL
+        email: user.email,
+        code: logInResponseEnum.SUCCESS,
+        accessToken: resultJwtGenerator.accessToken,
+        refreshToken: resultJwtGenerator.refreshToken
       };
     }
-    // Comparate password from DB and password from request
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
+    catch (e) {
       return {
-        code: logInResponseEnum.WRONG_PASSWORD
-      };
+        code: logInResponseEnum.SERVER_ERROR
+      }
     }
-    // Generate Token
-    const resultJwtGenerator = await jwtGenerator.createToken(user);
-    if (!resultJwtGenerator.isSuccess) resultJwtGenerator;
-    // Save refresh token in DB
-    const dateNow = Date.now() + 5259600000;
-    user.refresh_token = resultJwtGenerator.refreshToken;
-    user.refresh_token_expiry_time = dateNow;
-    await _entityRepository.updateOne(user);
-    return {
-      email: user.email,
-      code: logInResponseEnum.SUCCESS,
-      accessToken: resultJwtGenerator.accessToken,
-      refreshToken: resultJwtGenerator.refreshToken
-    };
   },
   async register(email, name, password, rePassword) {
-    // validate request
-    const resultValidator = registerValidator(email, name, password, rePassword);
-    if (resultValidator.code !== registerResponseEnum.SUCCESS) return resultValidator;
-    // Find email in DB
-    let user = await userRepository.getOneByEmail(email);
-    if (user) {
+    try {
+      // validate request
+      const resultValidator = registerValidator(email, name, password, rePassword);
+      if (resultValidator.code !== registerResponseEnum.SUCCESS) return resultValidator;
+      // Find email in DB
+      let user = await userRepository.getOneByEmail(email);
+      if (user) {
+        return {
+          code: registerResponseEnum.EMAIL_IS_UNAVAILABLE
+        };
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      password = await bcrypt.hash(password, salt);
+      const role = await roleRepository.getOneByName("student");
+      user = new User({ email, name, password, role: role.id });
+      // Generate Token
+      const resultJwtGenerator = await jwtGenerator.createToken(user);
+      if (!resultJwtGenerator.isSuccess) resultJwtGenerator;
+      // Save refresh token in DB
+      const dateNow = Date.now() + 5259600000;
+      user.refresh_token = resultJwtGenerator.refreshToken;
+      user.refresh_token_expiry_time = dateNow;
+      await _entityRepository.addOne(user);
       return {
-        code: registerResponseEnum.EMAIL_IS_UNAVAILABLE
+        code: registerResponseEnum.SUCCESS,
+        accessToken: resultJwtGenerator.accessToken,
+        refreshToken: resultJwtGenerator.refreshToken
       };
     }
-
-    const salt = await bcrypt.genSalt(10);
-    password = await bcrypt.hash(password, salt);
-    const role = await roleRepository.getOneByName("student");
-    user = new User({ email, name, password, role: role.id });
-    // Generate Token
-    const resultJwtGenerator = await jwtGenerator.createToken(user);
-    if (!resultJwtGenerator.isSuccess) resultJwtGenerator;
-    // Save refresh token in DB
-    const dateNow = Date.now() + 5259600000;
-    user.refresh_token = resultJwtGenerator.refreshToken;
-    user.refresh_token_expiry_time = dateNow;
-    await _entityRepository.addOne(user);
-    return {
-      code: registerResponseEnum.SUCCESS,
-      accessToken: resultJwtGenerator.accessToken,
-      refreshToken: resultJwtGenerator.refreshToken
-    };
+    catch (e) {
+      return {
+        code: registerResponseEnum.SERVER_ERROR
+      }
+    }
   },
-  getSelfInfo(token) {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  async getSelfInfo(id) {
+    const user = await _entityRepository.getOneById(id);
     return {
-      user: decoded.user ? decoded.user : null
+      user
     }
   }
 }
