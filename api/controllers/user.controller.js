@@ -1,33 +1,54 @@
 import { Router } from 'express';
 
-import userService from '../../bussiness/services/user.service.js';
+import auth from "../middlewares/auth.js";
 import httpStatusCode from '../../utils/enums/httpStatusCode.js';
+import userService from '../../bussiness/services/user.service.js';
+import logInResponseEnum from '../../utils/enums/logInResponseEnum.js';
+import registerResponseEnum from '../../utils/enums/registerResponseEnum.js';
 
 const router = Router();
 
-router.post('/auth-user', async(req, res) => {
+router.post('/auth/user', async (req, res) => {
   const { email, password } = req.body;
-  const loginResult = await userService.login(email, password);
-  if (!loginResult.isSuccess) {
-    res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
-      .send(loginResult)
-      .end();
-    return;
+  const result = await userService.login(email, password);
+  if (result.code !== logInResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
   }
-  res.status(httpStatusCode.SUCCESS.OK)
-    .send(loginResult)
+  // 2 months = 5259600000 miliseconds
+  res.cookie('refresh_token', result.refreshToken, { maxAge: 5259600000, path: "/", httpOnly: true });
+  res.cookie('access_token', result.accessToken, { maxAge: 5259600000, path: "/", httpOnly: true });
+  res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
 })
 
-router.post('/token-user', async(req, res) => {
-  const refresh_token = req.body;
-  const getTokenResult = await userService.token(refresh_token);
-  if (!getTokenResult.isSuccess) {
-    res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
-      .send(getTokenResult)
-      .end();
-    return;
+router.post('/user', async (req, res) => {
+  const { email, name, password, rePassword } = req.body;
+  const result = await userService.register(email, name, password, rePassword);
+  if (result.code !== registerResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
   }
-  res.status(httpStatusCode.SUCCESS.OK)
-    .send(getTokenResult)
+  // 2 months = 5259600000 miliseconds
+  res.cookie('refresh_token', result.refreshToken, { maxAge: 5259600000, path: "/", httpOnly: true });
+  res.cookie('access_token', result.accessToken, { maxAge: 5259600000, path: "/", httpOnly: true });
+  res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
+})
+
+router.delete("/refresh-token", auth(), async (req, res) => {
+  res.clearCookie("refresh_token");
+  res.clearCookie("access_token");
+  res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
+})
+
+router.get("/user", auth(), async (req, res) => {
+  const result = await userService.getSelfInfo(req.user.id);
+  res.status(httpStatusCode.SUCCESS.OK).json({
+    email: result.user.email,
+    name: result.user.name,
+    role: req.user.role
+  })
+    .end();
+})
+
+router.post('/auth/token', auth(), async (req, res) => {
+  res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
 })
 export default router;

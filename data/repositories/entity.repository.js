@@ -1,7 +1,7 @@
 export default _context => {
   return {
     //CREATE
-    addOne({ entity }) {
+    addOne(entity) {
       return entity.save();
     },
 
@@ -10,18 +10,17 @@ export default _context => {
       return _context.find({}).exec();
     },
 
-    getOneById({ id }) {
+    getOneById(id) {
       return _context.findById(id).exec();
     },
 
     //UPDATE
-    async updateOne({ entity, id }) {
-      await _context.updateOne({ _id: id }, { $set: entity })
-      return await _context.save();
+    updateOne(entity) {
+      return entity.save();
     },
 
     //DELETE
-    async deleteOne({ id }) {
+    async deleteOne(id) {
       await _context.deleteOne({ _id: id });
       return await _context.save();
     }

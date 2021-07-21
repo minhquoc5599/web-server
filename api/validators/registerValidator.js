@@ -1,23 +1,27 @@
 import registerResponseEnum from '../../utils/enums/registerResponseEnum.js';
 import emailValidator from './emailValidator.js';
 
-const registerValidator = (email, name, password) => {
+const registerValidator = (email, name, password, rePassword) => {
   if (!name) {
-    return { isSuccess: false, code: registerResponseEnum.NAME_IS_EMPTY };
+    return { code: registerResponseEnum.NAME_IS_EMPTY };
   }
   if (!email) {
-    return { isSuccess: false, code: registerResponseEnum.EMAIL_IS_EMPTY };
+    return { code: registerResponseEnum.EMAIL_IS_EMPTY };
   }
   if (!emailValidator(email)) {
-    return { isSuccess: false, code: registerResponseEnum.EMAIL_IS_NOT_VALID };
+    return { code: registerResponseEnum.EMAIL_IS_NOT_VALID };
   }
   if (!password) {
-    return { isSuccess: false, code: registerResponseEnum.PASSWORD_IS_EMPTY };
+    return { code: registerResponseEnum.PASSWORD_IS_EMPTY };
   }
   if (password.length < 6) {
-    return { isSuccess: false, code: registerResponseEnum.PASSWORD_IS_LESS_THAN_6_LETTERS }
+    return { code: registerResponseEnum.PASSWORD_IS_LESS_THAN_6_LETTERS }
   }
-  return { isSuccess: true, code: registerResponseEnum.SUCCESS };
+  if (password !== rePassword) {
+    return { code: registerResponseEnum.PASSWORD_DOES_NOT_MATCH }
+  }
+
+  return { code: registerResponseEnum.SUCCESS };
 }
 
 export default registerValidator;

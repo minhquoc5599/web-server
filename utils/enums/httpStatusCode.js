@@ -5,7 +5,8 @@ export default {
   SUCCESS: {
     OK: 200,
     CREATED: 201,
-    ACCEPTED: 202
+    ACCEPTED: 202,
+    NO_CONTENT: 204
   },
   REDIRECTION: {
     MULTIPLE_CHOICES: 300

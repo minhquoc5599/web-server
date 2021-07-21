@@ -1,65 +1,48 @@
 import jwt from 'jsonwebtoken';
-import logInResponseEnum from '../../utils/enums/logInResponseEnum.js';
+import { v4 as uuidv4 } from 'uuid';
+
+import Role from "../../models/role.js";
+import jwtEnum from '../../utils/enums/jwtEnum.js';
+import entityRepository from '../../data/repositories/entity.repository.js';
+
+const _entityRepository = entityRepository(Role);
 
 const jwtGenerator = {
   async createToken(user) {
+    const role = await _entityRepository.getOneById(user.role);
     const payload = {
       user: {
         id: user.id,
-        email: user.email
-      }
+        name: user.name,
+        role: role.name,
+      },
     };
-    let accessToken, refreshToken;
-    await new Promise((res) => {
-
+    let result;
+    await new Promise((res, rej) => {
       jwt.sign(
         payload,
         process.env.ACCESS_TOKEN_SECRET, {
-          expiresIn: '5m'
-        },
+        expiresIn: "2h",
+      },
         (err, token) => {
           if (err) {
-            accessToken = {
+            result = {
               isSuccess: false,
-              code: logInResponseEnum.SERVER_ERROR
+              code: jwtEnum.SERVER_ERROR
             }
           }
-          accessToken = {
+          result = {
             isSuccess: true,
-            code: logInResponseEnum.SUCCESS,
-            token: token
+            code: jwtEnum.SUCCESS,
+            accessToken: token,
+            refreshToken: uuidv4()
           };
-          res('success');
-        }
-      )
-
-      jwt.sign(
-        payload,
-        process.env.REFRESH_TOKEN_SECRET, {
-          expiresIn: '2h'
-        },
-        (err, token) => {
-          if (err) {
-            refreshToken = {
-              isSuccess: false,
-              code: logInResponseEnum.SERVER_ERROR
-            }
-          }
-          refreshToken = {
-            isSuccess: true,
-            code: logInResponseEnum.SUCCESS,
-            token: token
-          };
-          res('success');
+          res("success");
         }
       );
     });
-    return { accessToken, refreshToken };
-  },
-
-  async createAccessToken(user) {
-
-  },
+    return result;
+  }
 }
 
 export default jwtGenerator;

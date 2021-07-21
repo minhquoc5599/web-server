@@ -2,6 +2,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import express from 'express';
 import mongoose from 'mongoose';
+import cookieParser from 'cookie-parser';
 
 import httpStatusCode from './utils/enums/httpStatusCode.js';
 import userController from './api/controllers/user.controller.js';
@@ -15,10 +16,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const PORT = 3000 || process.env.PORT;
+const PORT = 5000 || process.env.PORT;
 mongoose.connect(process.env.URL_DATABASE, { useNewUrlParser: true, useUnifiedTopology: true });
 
 app.use(cors());
+app.use(cookieParser());
 app.use(morgan('dev'));
 app.use(express.json());
 

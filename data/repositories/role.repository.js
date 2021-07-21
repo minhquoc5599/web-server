@@ -1,13 +1,17 @@
-import Role from '../../models/role.js';
-import operatorType from '../../utils/enums/operatorType.js';
+import Role from "../../models/role.js";
 
 const roleRepository = {
+  //CREATE
+
   //READ
-  getRoleById(id) {
-    return Role.findById(id).catch(() => {
-      operatorType.FAIL.READ
-    });
-  }
-}
+  getOneByName(name) {
+    return Role.findOne({ name });
+  },
+
+  //UPDATE
+
+  //DELETE
+
+};
 
 export default roleRepository;
