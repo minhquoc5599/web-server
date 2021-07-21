@@ -9,6 +9,7 @@ import courseController from './api/controllers/course.controller.js';
 import rootCategoryController from './api/controllers/root_category.controller.js';
 import categoryController from './api/controllers/category.controller.js';
 import roleController from './api/controllers/role.controller.js';
+import subscriberController from './api/controllers/subscriber.controller.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -35,7 +36,7 @@ app.use('/api/course-controller', courseController);
 app.use('/api/root-category-controller', rootCategoryController);
 app.use('/api/category-controller', categoryController);
 app.use('/api/role-controller', roleController);
-
+app.use('/api/subscriber-controller', subscriberController);
 
 app.use((req, res, next) => {
   const error = new Error("Not found");

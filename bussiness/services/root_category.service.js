@@ -43,7 +43,7 @@ const rootCategoryService = {
     root_category = new RootCategory({ name });
     console.log(root_category);
     const addResult = await rootCategoryReposity.addRootCategory(root_category);
-    if (addResult == operatorType.FAIL.CREATE) {
+    if (addResult === operatorType.FAIL.CREATE) {
       return {
         isSuccess: false,
         code: categoryResponseEnum.SERVER_ERROR
