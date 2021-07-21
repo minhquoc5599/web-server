@@ -13,8 +13,7 @@ router.post('/auth/user', async (req, res) => {
   const { email, password } = req.body;
   const result = await userService.login(email, password);
   if (result.code !== logInResponseEnum.SUCCESS) {
-    res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
-    return;
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
   }
   // 2 months = 5259600000 miliseconds
   res.cookie('refresh_token', result.refreshToken, { maxAge: 5259600000, path: "/", httpOnly: true });
@@ -26,8 +25,7 @@ router.post('/user', async (req, res) => {
   const { email, name, password, rePassword } = req.body;
   const result = await userService.register(email, name, password, rePassword);
   if (result.code !== registerResponseEnum.SUCCESS) {
-    res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
-    return;
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
   }
   // 2 months = 5259600000 miliseconds
   res.cookie('refresh_token', result.refreshToken, { maxAge: 5259600000, path: "/", httpOnly: true });
@@ -41,16 +39,17 @@ router.delete("/refresh-token", auth, async (req, res) => {
   res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
 })
 
-router.get("/user", auth, async (req, res) => {
+router.get("/user", auth(), async (req, res) => {
   const result = await userService.getSelfInfo(req.user.id);
   res.status(httpStatusCode.SUCCESS.OK).json({
     email: result.user.email,
     name: result.user.name,
     role: req.user.role
-  }).end();
+  })
+    .end();
 })
 
-router.post('/auth/token', auth, async (req, res) => {
+router.post('/auth/token', auth(), async (req, res) => {
   res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
 })
 export default router;
