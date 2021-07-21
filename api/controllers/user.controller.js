@@ -1,11 +1,10 @@
 import { Router } from 'express';
 
 import auth from "../middlewares/auth.js";
-import userService from '../../bussiness/services/user.service.js';
 import httpStatusCode from '../../utils/enums/httpStatusCode.js';
+import userService from '../../bussiness/services/user.service.js';
 import logInResponseEnum from '../../utils/enums/logInResponseEnum.js';
 import registerResponseEnum from '../../utils/enums/registerResponseEnum.js';
-import user from '../../models/user.js';
 
 const router = Router();
 
@@ -33,7 +32,7 @@ router.post('/user', async (req, res) => {
   res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
 })
 
-router.delete("/refresh-token", auth, async (req, res) => {
+router.delete("/refresh-token", auth(), async (req, res) => {
   res.clearCookie("refresh_token");
   res.clearCookie("access_token");
   res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();

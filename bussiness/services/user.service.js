@@ -22,7 +22,7 @@ const userService = {
     // validate request
     try {
       const resultValidator = logInValidator(email, password);
-      if (resultValidator !== registerResponseEnum.SUCCESS) return resultValidator;
+      if (resultValidator.code !== logInResponseEnum.SUCCESS) return resultValidator;
       // Find email in DB
       const user = await userRepository.getOneByEmail(email);
       if (!user) {

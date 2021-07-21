@@ -3,8 +3,8 @@ import jwt from 'jsonwebtoken';
 
 import User from "../../models/user.js";
 import jwtEnum from '../../utils/enums/jwtEnum.js';
-import entityRepository from "../../data/repositories/entity.repository.js";
 import httpStatusCode from '../../utils/enums/httpStatusCode.js';
+import entityRepository from "../../data/repositories/entity.repository.js";
 
 const _entityRepository = entityRepository(User);
 
