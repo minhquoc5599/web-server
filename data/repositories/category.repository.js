@@ -1,45 +1,33 @@
 import Category from '../../models/category.js';
-import operatorType from '../../utils/enums/operatorType.js';
 
 const categoryRepository = {
   //CREATE
-  addCategory(category) {
-    return category.save().catch(() => {
-      operatorType.FAIL.CREATE
-    });
+  addOne(category) {
+    return category.save();
   },
+
   //READ
-  getCategories() {
-    return Category.find().catch(() => {
-      operatorType.FAIL.READ
-    });
+  getAll() {
+    return Category.find();
   },
-  getCategoriesById(root_category_id) { // By root_category_id
-    return Category.find({ root_category_id: root_category_id }).catch(() => {
-      operatorType.FAIL.READ
-    })
+  getAllById(root_category_id) { // By root_category_id
+    return Category.find({ root_category_id: root_category_id });
   },
-  getCategoryById(id) {
-    return Category.findById(id).catch(() => {
-      operatorType.FAIL.READ
-    })
+  getOneById(id) {
+    return Category.findById(id);
   },
-  getCategoryByName(name) {
-    return Category.findOne({ name: name }).catch(() => {
-      operatorType.FAIL.READ
-    })
+  getOneByName(name) {
+    return Category.findOne({ name: name });
   },
+
   //UPDATE
-  updateCategory(category) {
-    return category.save().catch(() => {
-      operatorType.FAIL.UPDATE
-    })
+  updateOne(category) {
+    return category.save();
   },
+
   //DELETE
-  deleteCategory({ id }) {
-    return Category.deleteOne({ _id: id }).catch(() => {
-      operatorType.FAIL.DELETE
-    });
+  deleteOne({ id }) {
+    return Category.deleteOne({ _id: id });
   }
 }
 

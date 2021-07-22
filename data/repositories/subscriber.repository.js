@@ -3,42 +3,29 @@ import operatorType from "../../utils/enums/operatorType.js";
 
 const subscriberRepository = {
   //CREATE
-  addSubscriber(subscriber) {
-    return subscriber.save().catch(() => {
-      operatorType.FAIL.CREATE
-    });
+  addOne(subscriber) {
+    return subscriber.save();
   },
 
   //READ
-  getSubscribersByCourseId(course_id) {
-    return Subscriber.find({ course_id: course_id }).catch(() => {
-      operatorType.FAIL.READ
-    });
+  getAllByCourseId(course_id) {
+    return Subscriber.find({ course_id: course_id });
   },
-  getSubscribersByStudentId(student_id) {
-    return Subscriber.find({ student_id: student_id }).catch(() => {
-      operatorType.FAIL.READ
-    });
+  getAllByStudentId(student_id) {
+    return Subscriber.find({ student_id: student_id });
   },
-  getSubscribersRatingByCourseId(course_id) {
-    return Subscriber.find({ course_id: course_id, rating: { $gte: 1 } })
-      .catch(() => {
-        operatorType.FAIL.READ
-      })
+  getAllRatingByCourseId(course_id) {
+    return Subscriber.find({ course_id: course_id, rating: { $gte: 1 } });
   },
-  getSubscriberByCourseIdStudentId(course_id, student_id) {
-    return Subscriber.findOne({ course_id: course_id, student_id: student_id })
-      .catch(() => {
-        operatorType.FAIL.READ
-      })
+  getOneByCourseIdStudentId(course_id, student_id) {
+    return Subscriber.findOne({ course_id: course_id, student_id: student_id });
   },
 
   //UPDATE
-  updateSubscriber(subscriber) {
-    return subscriber.save().catch(() => {
-      operatorType.FAIL.UPDATE
-    });
+  updateOne(subscriber) {
+    return subscriber.save();
   }
+
   //DELETE
 }
 

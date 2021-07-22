@@ -4,6 +4,9 @@ const roleRepository = {
   //CREATE
 
   //READ
+  getOneById(id) {
+    return Role.findOne({ _id: id });
+  },
   getOneByName(name) {
     return Role.findOne({ name });
   },
