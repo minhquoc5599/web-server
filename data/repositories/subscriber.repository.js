@@ -14,7 +14,7 @@ const subscriberRepository = {
   getAllByStudentId(student_id) {
     return Subscriber.find({ student_id: student_id });
   },
-  getAllRatingByCourseId(course_id) {
+  getAllRatedByCourseId(course_id) {
     return Subscriber.find({ course_id: course_id, rating: { $gte: 1 } });
   },
   getOneByCourseIdStudentId(course_id, student_id) {

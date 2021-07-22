@@ -1,135 +1,115 @@
 import Subscriber from "../../models/subscriber.js";
-import operatorType from "../../utils/enums/operatorType.js";
 import subscriberRepository from "../../data/repositories/subscriber.repository.js";
 import subscriberResponseEnum from "../../utils/enums/subscriberResponseEnum.js";
 import subscriberValidator from "../../api/validators/subscriberValidator.js";
 
 const subscriberService = {
-  async addSubscriber(course_id, student_id) {
-    // Validate request
-    const resultValidator = subscriberValidator.addValidator(course_id, student_id);
-    if (!resultValidator.isSuccess) return resultValidator;
+  async subscribe(course_id, student_id) {
+    try {
+      // Validate request
+      const resultValidator = subscriberValidator.addValidator(course_id, student_id);
+      if (resultValidator.code !== subscriberResponseEnum.VALIDATOR_IS_SUCCESS) return resultValidator;
 
-    // Check
-    let subscriber = await subscriberRepository.getSubscriberByCourseIdStudentId(course_id, student_id);
-    if (subscriber === operatorType.FAIL.READ) {
-      return {
-        isSuccess: false,
-        code: operatorType.FAIL.READ
-      };
-    }
-    if (subscriber) {
-      return {
-        isSuccess: false,
-        code: subscriberResponseEnum.COURSE_HAS_BEEN_SUBSCRIBED
-      };
-    }
-
-    // Save subscriber to DB
-    subscriber = new Subscriber({ course_id, student_id });
-    const createSubscriber = await subscriberRepository.addSubscriber(subscriber);
-    console.log(createSubscriber);
-    if (createSubscriber === operatorType.FAIL.CREATE) {
-      return {
-        isSuccess: false,
-        code: operatorType.FAIL.CREATE
-      };
-    }
-    return {
-      isSuccess: true,
-      createSubscriber,
-      code: operatorType.SUCCESS.CREATE
-    }
-  },
-  async getSubscribersByCourseId(course_id) {
-    // Validate course id
-    const resultValidator = subscriberValidator.courseIdValidator(course_id);
-    if (!resultValidator.isSuccess) return resultValidator;
-
-    const subscribers = await subscriberRepository.getSubscribersByCourseId(course_id);
-    if (subscribers === operatorType.FAIL.READ) {
-      return {
-        isSuccess: false,
-        code: operatorType.FAIL.READ
+      // Check subsciber available or not
+      let subscriber = await subscriberRepository.getOneByCourseIdStudentId(course_id, student_id);
+      if (subscriber) {
+        return {
+          code: subscriberResponseEnum.COURSE_HAS_BEEN_SUBSCRIBED
+        };
       }
-    }
-    if (!subscribers) {
+
+      // Save subscriber to DB
+      subscriber = new Subscriber({ course_id, student_id });
+      const createSubscriber = await subscriberRepository.addOne(subscriber);
       return {
-        isSuccess: false,
-        code: subscriberResponseEnum.COURSE_ID_IS_INVALID
-      }
-    }
-    return {
-      isSuccess: true,
-      subscribers,
-      code: operatorType.SUCCESS.READ
+        code: subscriberResponseEnum.SUCCESS,
+        subscriber: createSubscriber
+      };
+    } catch (e) {
+      return {
+        code: subscriberResponseEnum.SERVER_ERROR
+      };
     }
   },
 
-  async getSubscribersRatingByCourseId(course_id) {
-    // Validate course id
-    const resultValidator = subscriberValidator.courseIdValidator(course_id);
-    if (!resultValidator.isSuccess) return resultValidator;
+  async getAllByCourseId(course_id) {
+    try {
+      // Validate course id
+      const resultValidator = subscriberValidator.courseIdValidator(course_id);
+      if (resultValidator.code !== subscriberResponseEnum.VALIDATOR_IS_SUCCESS) return resultValidator;
 
-    const subscribers = await subscriberRepository.getSubscribersRatingByCourseId(course_id);
-    if (subscribers === operatorType.FAIL.READ) {
-      return {
-        isSuccess: false,
-        code: operatorType.FAIL.READ
+      const subscribers = await subscriberRepository.getAllByCourseId(course_id);
+      if (!subscribers) {
+        return {
+          code: subscriberResponseEnum.COURSE_ID_IS_INVALID
+        };
       }
-    }
-    if (!subscribers) {
       return {
-        isSuccess: false,
-        code: subscriberResponseEnum.COURSE_ID_IS_INVALID
-      }
-    }
-    return {
-      isSuccess: true,
-      subscribers,
-      code: operatorType.SUCCESS.READ
+        code: subscriberResponseEnum.SUCCESS,
+        subscribers
+      };
+    } catch (e) {
+      return {
+        code: subscriberResponseEnum.SERVER_ERROR
+      };
     }
   },
-  async updateSubscriber(course_id, student_id, rating, comment) {
-    // Validate student id, rating
-    const resultValidator = await subscriberValidator.updateValidator(course_id, student_id, rating);
-    if (!resultValidator.isSuccess) return resultValidator;
 
-    // Check subscriber 
-    const subscriber = await subscriberRepository.getSubscriberByCourseIdStudentId(course_id, student_id);
-    if (subscriber === operatorType.FAIL.READ) {
-      return {
-        isSuccess: false,
-        code: operatorType.FAIL.READ
+  async getAllRatedByCourseId(course_id) {
+    try {
+      // Validate course id
+      const resultValidator = subscriberValidator.courseIdValidator(course_id);
+      if (resultValidator.code !== subscriberResponseEnum.VALIDATOR_IS_SUCCESS) return resultValidator;
+
+      const subscribers = await subscriberRepository.getAllRatedByCourseId(course_id);
+      if (!subscribers) {
+        return {
+          code: subscriberResponseEnum.COURSE_ID_IS_INVALID
+        };
       }
-    }
-    if (!subscriber) {
       return {
-        isSuccess: false,
-        code: subscriberResponseEnum.COURSE_ID_AND_STUDENT_ID_ARE_INVALID
-      }
-    }
-    if (subscriber.rating > 0) {
+        code: subscriberResponseEnum.SUCCESS,
+        subscribers
+      };
+    } catch (e) {
       return {
-        isSuccess: false,
-        code: subscriberResponseEnum.COURSE_HAS_BEEN_RATED
-      }
+        code: subscriberResponseEnum.SERVER_ERROR
+      };
     }
 
-    // Update subscriber to DB
-    subscriber.rating = rating;
-    subscriber.comment = comment;
-    const resultUpdate = await subscriberRepository.updateSubscriber(subscriber);
-    if (resultUpdate === operatorType.FAIL.UPDATE) {
-      return {
-        isSuccess: false,
-        code: operatorType.FAIL.READ
+  },
+
+  async rating(course_id, student_id, rating, comment) {
+    try {
+      // Validate student id, rating
+      const resultValidator = subscriberValidator.updateValidator(course_id, student_id, rating);
+      if (resultValidator.code !== subscriberResponseEnum.VALIDATOR_IS_SUCCESS) return resultValidator;
+
+      // Check subscriber available or not 
+      const subscriber = await subscriberRepository.getOneByCourseIdStudentId(course_id, student_id);
+      if (!subscriber) {
+        return {
+          code: subscriberResponseEnum.COURSE_ID_AND_STUDENT_ID_ARE_INVALID
+        };
       }
-    }
-    return {
-      isSuccess: true,
-      resultUpdate,
-      code: operatorType.SUCCESS.UPDATE
+      if (subscriber.rating > 0) {
+        return {
+          code: subscriberResponseEnum.COURSE_HAS_BEEN_RATED
+        };
+      }
+
+      // Update subscriber to DB
+      subscriber.rating = rating;
+      subscriber.comment = comment;
+      const resultUpdate = await subscriberRepository.updateOne(subscriber);
+      return {
+        code: subscriberResponseEnum.SUCCESS,
+        subscriber: resultUpdate
+      };
+    } catch (e) {
+      return {
+        code: subscriberResponseEnum.SERVER_ERROR
+      };
     }
   }
 }

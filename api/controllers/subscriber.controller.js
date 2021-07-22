@@ -2,53 +2,43 @@ import { Router } from 'express';
 
 import httpStatusCode from '../../utils/enums/httpStatusCode.js';
 import subscriberService from '../../bussiness/services/subscriber.service.js';
+import subscriberResponseEnum from '../../utils/enums/subscriberResponseEnum.js';
 
 const router = Router();
-router.post('/add-subscriber', async(req, res) => {
+router.post('/subscribe', async(req, res) => {
   const { course_id, student_id } = req.body;
-  const result = await subscriberService.addSubscriber(course_id, student_id);
-  if (!result.isSuccess) {
-    res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
-      .json(result)
-      .end();
-    return;
+  const result = await subscriberService.subscribe(course_id, student_id)
+  if (result.code !== subscriberResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
   }
-  res.status(httpStatusCode.SUCCESS.OK).json(result);
-})
-router.get('/subscribers-by-course-id', async(req, res) => {
-  const { course_id } = req.body;
-  const result = await subscriberService.getSubscribersByCourseId(course_id);
-  if (!result.isSuccess) {
-    res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
-      .json(result)
-      .end();
-    return;
-  }
-  res.status(httpStatusCode.SUCCESS.OK).json(result);
+  res.status(httpStatusCode.SUCCESS.CREATED).json(result).end();
 });
 
-router.get('/subscribers-rating-by-course-id', async(req, res) => {
-  const { course_id } = req.body;
-  const result = await subscriberService.getSubscribersRatingByCourseId(course_id)
-  if (!result.isSuccess) {
-    res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
-      .json(result)
-      .end();
-    return;
+router.get('/subscribers/:id', async(req, res) => {
+  const course_id = req.params.id;
+  const result = await subscriberService.getAllByCourseId(course_id);
+  if (result.code !== subscriberResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
   }
-  res.status(httpStatusCode.SUCCESS.OK).json(result);
+  res.status(httpStatusCode.SUCCESS.OK).json(result).end();
 });
 
-router.put('/update-subscriber', async(req, res) => {
+router.get('/subscribers-rated/:id', async(req, res) => {
+  const course_id = req.params.id;
+  const result = await subscriberService.getAllRatedByCourseId(course_id);
+  if (result.code !== subscriberResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
+  }
+  res.status(httpStatusCode.SUCCESS.OK).json(result).end();
+});
+
+router.put('/rating', async(req, res) => {
   const { course_id, student_id, rating, comment } = req.body;
-  const result = await subscriberService.updateSubscriber(course_id, student_id, rating, comment);
-  if (!result.isSuccess) {
-    res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
-      .json(result)
-      .end();
-    return;
+  const result = await subscriberService.rating(course_id, student_id, rating, comment);
+  if (result.code !== subscriberResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
   }
-  res.status(httpStatusCode.SUCCESS.OK).json(result);
-})
+  res.status(httpStatusCode.SUCCESS.OK).json(result).end();
+});
 
 export default router;

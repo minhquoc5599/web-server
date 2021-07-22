@@ -10,7 +10,7 @@ const categoryRepository = {
   getAll() {
     return Category.find();
   },
-  getAllById(root_category_id) { // By root_category_id
+  getAllByRootCategoryId(root_category_id) { // By root_category_id
     return Category.find({ root_category_id: root_category_id });
   },
   getOneById(id) {

@@ -1,5 +1,4 @@
 import Category from '../../models/category.js';
-import operatorType from '../../utils/enums/operatorType.js';
 import categoryResponseEnum from '../../utils/enums/categoryResponseEnum.js';
 import categoryRepository from '../../data/repositories/category.repository.js';
 import categoryValidator from '../../api/validators/categoryValidator.js';
@@ -8,141 +7,109 @@ import rootCategoryReposity from '../../data/repositories/root_category.reposito
 const categoryService = {
   async getAll() {
     try {
-      const listAllResponse = await categoryRepository.getCategories();
+      const listAllResponse = await categoryRepository.getAll();
       return {
-        isSuccess: true,
         code: categoryResponseEnum.SUCCESS,
         listAllResponse: listAllResponse
-      }
+
+      };
     } catch (e) {
       return {
-        isSuccess: false,
         code: categoryResponseEnum.SERVER_ERROR
-      }
+      };
     }
   },
 
-  async addCategory(name, root_category_id) {
-    // Validate request
-    const resultValidator = categoryValidator(name, root_category_id);
-    if (!resultValidator.isSuccess) return resultValidator;
+  async addOne(name, root_category_id) {
+    try {
+      // Validate request
+      const resultValidator = categoryValidator.addValidator(root_category_id, name);
+      if (resultValidator.code !== categoryResponseEnum.VALIDATOR_IS_SUCCESS) return resultValidator;
 
-    // Check name category is available or not
-    let category = await categoryRepository.getCategoryByName(name);
-    if (category === operatorType.FAIL.READ) {
+      // Check name category is available or not
+      let category = await categoryRepository.getOneByName(name);
+      if (category) {
+        return {
+          code: categoryResponseEnum.NAME_IS_UNAVAILABLE
+        };
+      }
+
+      // Check root_category_id is available or not
+      const root_category = await rootCategoryReposity.getOneById(root_category_id);
+      if (!root_category) {
+        return {
+          code: categoryResponseEnum.ROOT_CATEGORY_ID_IS_INVALID
+        };
+      }
+
+      // Save category to DB
+      category = new Category({ name, root_category_id });
+      const resultCategory = await categoryRepository.addOne(category);
       return {
-        isSuccess: false,
+        code: categoryResponseEnum.SUCCESS,
+        category: resultCategory
+      };
+    } catch (e) {
+      return {
         code: categoryResponseEnum.SERVER_ERROR
       };
-    }
-    if (category) {
-      return {
-        isSuccess: false,
-        code: categoryResponseEnum.NAME_IS_UNAVAILABLE
-      };
-    }
-
-    // Check root_category_id is available or not
-    let root_category = await rootCategoryReposity.getRootCategoryById(root_category_id);
-    if (root_category === operatorType.FAIL.READ) {
-      return {
-        isSuccess: false,
-        code: categoryResponseEnum.SERVER_ERROR
-      }
-    }
-    if (!root_category) {
-      return {
-        isSuccess: false,
-        code: categoryResponseEnum.ROOT_CATEGORY_ID_IS_UNAVAILABLE
-      }
-    }
-
-    // Save category to DB
-    category = new Category({ name, root_category_id });
-    const addResult = await categoryRepository.addCategory(category);
-    if (addResult === operatorType.FAIL.CREATE) {
-      return {
-        isSuccess: false,
-        code: categoryResponseEnum.SERVER_ERROR
-      }
-    }
-    return {
-      isSuccess: true,
-      category,
-      code: operatorType.SUCCESS.CREATE
     }
   },
 
-  async getCategorybyId(id) {
-    const category = await categoryRepository.getCategoryById(id);
-    if (category === operatorType.FAIL.READ) {
-      return {
-        isSuccess: false,
-        code: operatorType.FAIL.READ
-      }
-    }
-    // check category is available or not
-    if (!category) {
-      return {
-        isSuccess: false,
-        code: categoryResponseEnum.ID_IS_INVALID
-      }
-    }
-    return {
-      isSuccess: true,
-      category,
-      code: operatorType.SUCCESS.READ
-    }
-  },
+  async getOnebyId(id) {
+    try {
+      const category = await categoryRepository.getOneById(id);
 
-  async updateCategory(id, name) {
-    // Validate request
-    const resultValidator = categoryValidator(name, id);
-    if (!resultValidator.isSuccess) return resultValidator;
-
-    // Check name category is available or not
-    let category = await categoryRepository.getCategoryByName(name);
-    if (category === operatorType.FAIL.READ) {
+      // check category is available or not
+      if (!category) {
+        return {
+          code: categoryResponseEnum.ID_IS_INVALID
+        }
+      }
       return {
-        isSuccess: false,
+        code: categoryResponseEnum.SUCCESS,
+        category
+      };
+    } catch (e) {
+      return {
         code: categoryResponseEnum.SERVER_ERROR
       };
     }
-    if (category) {
+  },
+
+  async updateOne(id, name) {
+    try {
+      // Validate request
+      const resultValidator = categoryValidator.updateValidator(id, name);
+      if (resultValidator.code !== categoryResponseEnum.VALIDATOR_IS_SUCCESS) return resultValidator;
+
+      // Check name category is available or not
+      let category = await categoryRepository.getOneByName(name);
+      if (category) {
+        return {
+          code: categoryResponseEnum.NAME_IS_UNAVAILABLE
+        };
+      }
+
+      // Check id category is available or not
+      category = await categoryRepository.getOneById(id);
+      if (!category) {
+        return {
+          code: categoryResponseEnum.ID_IS_INVALID
+        };
+      }
+
+      // Update category to DB
+      category.name = name;
+      const update = await categoryRepository.updateOne(category);
       return {
-        isSuccess: false,
-        code: categoryResponseEnum.NAME_IS_UNAVAILABLE
+        code: categoryResponseEnum.SUCCESS,
+        category: update
       };
-    }
-
-    // Check id category is available or not
-    category = await categoryRepository.getCategoryById(id);
-    if (category === operatorType.FAIL.READ) {
+    } catch (e) {
       return {
-        isSuccess: false,
-        code: operatorType.FAIL.READ
-      }
-    }
-    if (!category) {
-      return {
-        isSuccess: false,
-        code: categoryResponseEnum.ID_IS_INVALID
-      }
-    }
-
-    // Update category to DB
-    category.name = name;
-    const update = await categoryRepository.updateCategory(category)
-    if (update === operatorType.FAIL.UPDATE) {
-      return {
-        isSuccess: false,
-        code: operatorType.FAIL.UPDATE
-      }
-    }
-    return {
-      isSuccess: true,
-      update,
-      code: operatorType.SUCCESS.UPDATE
+        code: categoryResponseEnum.SERVER_ERROR
+      };
     }
   }
 }
