@@ -7,11 +7,10 @@ import rootCategoryReposity from '../../data/repositories/root_category.reposito
 const categoryService = {
   async getAll() {
     try {
-      const listAllResponse = await categoryRepository.getAll();
+      const categories = await categoryRepository.getAll();
       return {
         code: categoryResponseEnum.SUCCESS,
-        listAllResponse: listAllResponse
-
+        categories
       };
     } catch (e) {
       return {

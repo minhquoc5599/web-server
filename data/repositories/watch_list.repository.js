@@ -1,5 +1,4 @@
 import WatchList from "../../models/watch_list.js";
-import operatorType from "../../utils/enums/operatorType.js";
 
 const watchListRepository = {
   //CREATE

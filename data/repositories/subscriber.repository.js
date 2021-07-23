@@ -1,5 +1,4 @@
 import Subscriber from "../../models/subscriber.js";
-import operatorType from "../../utils/enums/operatorType.js";
 
 const subscriberRepository = {
   //CREATE

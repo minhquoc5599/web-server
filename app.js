@@ -11,7 +11,8 @@ import rootCategoryController from './api/controllers/root_category.controller.j
 import categoryController from './api/controllers/category.controller.js';
 import roleController from './api/controllers/role.controller.js';
 import subscriberController from './api/controllers/subscriber.controller.js';
-import watchListController from './api/controllers/watch_list.controller.js'
+import watchListController from './api/controllers/watch_list.controller.js';
+import videoController from './api/controllers/video.controller.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -41,6 +42,7 @@ app.use('/api/category-controller', categoryController);
 app.use('/api/role-controller', roleController);
 app.use('/api/subscriber-controller', subscriberController);
 app.use('/api/watch-list-controller', watchListController);
+app.use('/api/video-controller', videoController);
 
 app.use((req, res, next) => {
   const error = new Error("Not found");
