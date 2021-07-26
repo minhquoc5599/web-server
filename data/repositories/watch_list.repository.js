@@ -1,33 +1,22 @@
 import WatchList from "../../models/watch_list.js";
-import operatorType from "../../utils/enums/operatorType.js";
 
 const watchListRepository = {
   //CREATE
-  addWatchList(watch_list) {
-    return watch_list.save().catch(() => {
-      operatorType.FAIL.CREATE
-    });
+  addOne(watch_list) {
+    return watch_list.save();
   },
 
   //READ
-  getWatchListsByStudentId(student_id) {
-    return WatchList.find({ student_id: student_id }).catch(() => {
-      operatorType.FAIL.READ
-    });
+  getAllByStudentId(student_id) {
+    return WatchList.find({ student_id: student_id });
   },
-  getWatchListByCourseIdStudentId(course_id, student_id) {
-    return WatchList.findOne({ course_id: course_id, student_id: student_id })
-      .catch(() => {
-        operatorType.FAIL.READ
-      });
+  getOneByCourseIdStudentId(course_id, student_id) {
+    return WatchList.findOne({ course_id: course_id, student_id: student_id });
   },
 
   //DELETE
-  deleteWatchList(course_id, student_id) {
-    return WatchList.deleteOne({ course_id: course_id, student_id: student_id })
-      .catch(() => {
-        operatorType.FAIL.DELETE
-      });
+  deleteOne(course_id, student_id) {
+    return WatchList.deleteOne({ course_id: course_id, student_id: student_id });
   }
 }
 
