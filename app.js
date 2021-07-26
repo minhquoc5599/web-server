@@ -19,7 +19,12 @@ const app = express();
 const PORT = 5000 || process.env.PORT;
 mongoose.connect(process.env.URL_DATABASE, { useNewUrlParser: true, useUnifiedTopology: true });
 
-app.use(cors());
+var corsOptions = {
+  origin: 'http://localhost:3000',
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(morgan('dev'));
 app.use(express.json());

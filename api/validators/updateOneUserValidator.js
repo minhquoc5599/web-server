@@ -1,6 +1,6 @@
-import updateResponseEnum from "../../utils/enums/updateResponseEnum.js"
+import updateOneUserResponseEnum from "../../utils/enums/updateOneUserResponseEnum.js"
 
-const updateValidator = (name, password) => {
+const updateOneUserValidator = (name, password) => {
   if (!name || name === '') {
     return { isSuccess: false, code: updateResponseEnum.NAME_IS_EMPTY };
   }
@@ -10,4 +10,4 @@ const updateValidator = (name, password) => {
   return { isSuccess: true, code: updateResponseEnum.PASSWORD_IS_EMPTY };
 }
 
-export default updateValidator;
+export default updateOneUserValidator;
