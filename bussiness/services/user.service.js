@@ -6,13 +6,13 @@ import operatorType from '../../utils/enums/operatorType.js'
 import jwtGenerator from '../../api/security/jwtGenerator.js';
 import logInValidator from '../../api/validators/logInValidator.js';
 import registerValidator from '../../api/validators/registerValidator.js';
-import updateValidator from '../../api/validators/updateValidator.js';
+import updateOneUserValidator from '../../api/validators/updateOneUserValidator.js';
 import userRepository from '../../data/repositories/user.repository.js';
 import roleRepository from '../../data/repositories/role.repository.js';
 import entityRepository from '../../data/repositories/entity.repository.js';
 import logInResponseEnum from '../../utils/enums/logInResponseEnum.js';
 import registerResponseEnum from '../../utils/enums/registerResponseEnum.js';
-import updateResponseEnum from '../../utils/enums/updateResponseEnum.js';
+import updateOneUserResponseEnum from '../../utils/enums/updateOneUserResponseEnum.js';
 import role from '../../models/role.js';
 
 const _entityRepository = entityRepository(User);

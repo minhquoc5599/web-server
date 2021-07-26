@@ -15,8 +15,8 @@ router.post('/auth/user', async (req, res) => {
     return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
   }
   // 2 months = 5259600000 miliseconds
-  res.cookie('refresh_token', result.refreshToken, { maxAge: 5259600000, path: "/", httpOnly: true });
   res.cookie('access_token', result.accessToken, { maxAge: 5259600000, path: "/", httpOnly: true });
+  res.cookie('refresh_token', result.refreshToken, { maxAge: 5259600000, path: "/", httpOnly: true });
   res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
 })
 
@@ -49,6 +49,8 @@ router.get("/user", auth(), async (req, res) => {
 })
 
 router.post('/auth/token', auth(), async (req, res) => {
-  res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
+  res.status(httpStatusCode.SUCCESS.OK).json({
+    role: req.user.role
+  }).end();
 })
 export default router;
