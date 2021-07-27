@@ -26,10 +26,13 @@ router.post('/user', async (req, res) => {
   if (result.code !== registerResponseEnum.SUCCESS) {
     return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
   }
-  // 2 months = 5259600000 miliseconds
-  res.cookie('refresh_token', result.refreshToken, { maxAge: 5259600000, path: "/", httpOnly: true });
-  res.cookie('access_token', result.accessToken, { maxAge: 5259600000, path: "/", httpOnly: true });
   res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
+})
+
+router.post('/confirmation/:token', async (req, res) => {
+  const token = req.params.token;
+  await userService.confirmEmail(token);
+  return res.redirect("http://localhost:3000/login")
 })
 
 router.delete("/refresh-token", auth(), async (req, res) => {
