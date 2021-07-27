@@ -93,6 +93,38 @@ const chatbotService = {
       }
     });
   },
+  async setupPersistentMenu(req, res) {
+    // Construct the message body
+    let request_body = {
+      "persistent_menu": [{
+        "locale": "default",
+        "composer_input_disabled": false,
+        "call_to_actions": [{
+          "type": "postback",
+          "title": "Restart chatbot",
+          "payload": "RESTART_CHATBOT"
+        }]
+      }]
+    }
+
+    // Send the HTTP request to the Messenger Platform
+    request({
+      "uri": `https://graph.facebook.com/v11.0/me/messenger_profile?access_token=${PAGE_ACCESS_TOKEN}`,
+      "qs": { "access_token": PAGE_ACCESS_TOKEN },
+      "method": "POST",
+      "json": request_body
+    }, (err, res, body) => {
+      console.log("####");
+      console.log(request_body);
+      console.log("#####");
+      console.log(body);
+      if (!err) {
+        console.log('Setup persistent menu succeeded!');
+      } else {
+        console.error("Unable to setup persistent menu:" + err);
+      }
+    });
+  }
 }
 
 export default chatbotService;
