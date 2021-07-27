@@ -1,3 +1,13 @@
+import request from 'request';
+import dotenv from 'dotenv';
+dotenv.config();
+import axios from 'axios';
+import categoryResponseEnum from '../../utils/enums/categoryResponseEnum.js';
+import courseResponseEnum from '../../utils/enums/courseResponseEnum.js';
+
+const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
+
 const chatbotService = {
   async postWebHook(req, res) {
     let body = req.body;
@@ -8,10 +18,23 @@ const chatbotService = {
       // Iterates over each entry - there may be multiple if batched
       body.entry.forEach(function(entry) {
 
-        // Gets the message. entry.messaging is an array, but 
-        // will only ever contain one message, so we get index 0
+        // Gets the body of the webhook event
         let webhook_event = entry.messaging[0];
         console.log(webhook_event);
+
+
+        // Get the sender PSID
+        let sender_psid = webhook_event.sender.id;
+        console.log('Sender PSID: ' + sender_psid);
+
+        // Check if the event is a message or postback and
+        // pass the event to the appropriate handler function
+        if (webhook_event.message) {
+          handleMessage(sender_psid, webhook_event.message);
+        } else if (webhook_event.postback) {
+          handlePostback(sender_psid, webhook_event.postback);
+        }
+
       });
 
       // Returns a '200 OK' response to all requests
@@ -23,9 +46,6 @@ const chatbotService = {
   },
 
   async getWebHook(req, res) {
-    // Your verify token. Should be a random string.
-    let VERIFY_TOKEN = process.env.VERIFY_TOKEN;
-
     // Parse the query params
     let mode = req.query['hub.mode'];
     let token = req.query['hub.verify_token'];
@@ -46,7 +66,33 @@ const chatbotService = {
         res.sendStatus(403);
       }
     }
-  }
+  },
+
+  async setupProfile(req, res) {
+    // Construct the message body
+    let request_body = {
+      "get_started": { "payload": "GET_STARTED" },
+      "whitelisted_domains": ["https://academy--web.herokuapp.com/"]
+    }
+
+    // Send the HTTP request to the Messenger Platform
+    request({
+      "uri": `https://graph.facebook.com/v11.0/me/messenger_profile?access_token=${PAGE_ACCESS_TOKEN}`,
+      "qs": { "access_token": PAGE_ACCESS_TOKEN },
+      "method": "POST",
+      "json": request_body
+    }, (err, res, body) => {
+      console.log("####");
+      console.log(request_body);
+      console.log("#####");
+      console.log(body);
+      if (!err) {
+        console.log('Setup user profile succeeded!');
+      } else {
+        console.error("Unable to setup profile:" + err);
+      }
+    });
+  },
 }
 
 export default chatbotService;

@@ -7,4 +7,6 @@ router.post('/webhook', chatbotService.postWebHook);
 
 router.get('/webhook', chatbotService.getWebHook);
 
+router.post('/setup-profile', chatbotService.setupProfile);
+
 export default router;
