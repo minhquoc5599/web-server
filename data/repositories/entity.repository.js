@@ -7,11 +7,19 @@ export default _context => {
 
     //READ
     getAll() {
-      return _context.find({}).exec();
+      return _context.find({}).lean().exec();
     },
 
     getOneById(id) {
-      return _context.findById(id).exec();
+      return _context.findById(id).lean().exec();
+    },
+
+    getAllByCategoryId(category_id) {
+      return _context.find(category_id).lean().exec();
+    },
+
+    getAllByName(name) {
+      return _context.find({ $text: { $search: name } }).lean().exec();
     },
 
     //UPDATE
