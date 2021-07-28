@@ -91,7 +91,7 @@ const countryService = {
   async getAllByCriteria() {
     try {
       const courses = await _entityRepository.getAll();
-      const tmp = courses;
+      let tmp = courses;
       for (var i = 0; i < tmp.length; i++) {
         const teacher = await userRepository.getOneById(tmp[i].teacher_id);
         const category = await categoryRepository.getOneById(tmp[i].category_id);
@@ -105,6 +105,7 @@ const countryService = {
       let most_viewed_courses = [];
       let latest_courses = [];
       let featured_courses = [];
+      let most_subscribed_categories = [];
 
       // 10 most_viewed_courses
       for (var i = 0; i < courses.length - 1; i++) {
@@ -147,15 +148,45 @@ const countryService = {
         }
       }
 
-      for (var i = 0; i < 3; i++) {
+      for (var i = 0; i <= 3; i++) {
         featured_courses.push(courses[i]);
       }
+
+      // 4 most number of subscribers category
+      const categories = await categoryRepository.getAll();
+      tmp = categories;
+      let num = 0
+      for (var i = 0; i < tmp.length; i++) {
+        for (var j = 0; j < courses.length; j++) {
+          if (categories[i]._id === courses[j].category_id) {
+            num += courses[j].number_of_subscribers
+          }
+        }
+        categories[i]['number_of_subscribers'] = num;
+      }
+
+      for (var i = 0; i < categories.length - 1; i++) {
+        for (var j = i + 1; j < categories.length; j++) {
+          if (categories[i].number_of_subscribers < categories[j].number_of_subscribers) {
+            const a = categories[i];
+            categories[i] = categories[j];
+            categories[j] = a;
+          }
+        }
+      }
+
+
+      for (var i = 0; i <= 3; i++) {
+        most_subscribed_categories.push(categories[i]);
+      }
+
 
       return {
         code: courseResponseEnum.SUCCESS,
         most_viewed_courses,
         latest_courses,
-        featured_courses
+        featured_courses,
+        most_subscribed_categories
       }
     } catch (e) {
       return { code: courseResponseEnum.SERVER_ERROR }

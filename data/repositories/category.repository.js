@@ -8,7 +8,7 @@ const categoryRepository = {
 
   //READ
   getAll() {
-    return Category.find();
+    return Category.find().lean().exec();
   },
   getAllByRootCategoryId(root_category_id) { // By root_category_id
     return Category.find({ root_category_id: root_category_id });
