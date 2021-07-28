@@ -127,4 +127,99 @@ const chatbotService = {
   }
 }
 
+// Handles messages events
+const handleMessage = async(sender_psid, received_message) => {
+
+  let response;
+
+  // Check if the message contains text
+  if (received_message.text) {
+    // Create the payload for a basic text message
+    response = sendGetStartedMenu();
+
+    // Sends the response message
+    callSendAPI(sender_psid, response);
+  }
+}
+
+// Handles messaging_postbacks events
+const handlePostback = async(sender_psid, received_postback) => {
+
+  let response;
+  // Get the payload for the postback
+  let payload = received_postback.payload;
+  switch (payload) {
+    case 'RESTART_CHATBOT':
+    case 'GET_STARTED':
+      handleGetStarted(sender_psid);
+      break;
+    default:
+      response = { "text": `Tôi không hiểu yêu cầu ${payload} của bạn` }
+        // Send the message to acknowledge the postback
+      callSendAPI(sender_psid, response);
+  }
+}
+
+// Sends response messages via the Send API
+const callSendAPI = (sender_psid, response) => {
+  // Construct the message body
+  let request_body = {
+    "recipient": {
+      "id": sender_psid
+    },
+    "message": response
+  }
+
+  // Send the HTTP request to the Messenger Platform
+  request({
+    "uri": "https://graph.facebook.com/v2.6/me/messages",
+    "qs": { "access_token": PAGE_ACCESS_TOKEN },
+    "method": "POST",
+    "json": request_body
+  }, (err, res, body) => {
+    console.log(request_body);
+    console.log(body);
+    if (!err) {
+      console.log('message sent!')
+    } else {
+      console.error("Unable to send message:" + err);
+    }
+  });
+}
+
+const sendGetStartedMenu = () => {
+  return {
+    "attachment": {
+      "type": "template",
+      "payload": {
+        "template_type": "generic",
+        "elements": [{
+          "title": "Chào mừng bạn đến với khóa học trực tuyến",
+          "subtitle": "Dưới đây là các lựa chọn của khóa học",
+          "buttons": [{
+              "type": "postback",
+              "title": "Tìm kiếm khóa học",
+              "payload": "SEARCH",
+            },
+            {
+              "type": "postback",
+              "title": "Duyệt khóa học",
+              "payload": "CATEGORY",
+            },
+          ],
+        }]
+      }
+    }
+  }
+}
+
+const handleGetStarted = async(sender_psid) => {
+  let response, response2;
+  response = { "text": "Chào mừng bạn đến với khóa học trực tuyến" }
+  response2 = sendGetStartedMenu();
+  // Send the message to acknowledge the postback
+  callSendAPI(sender_psid, response);
+  callSendAPI(sender_psid, response2);
+}
+
 export default chatbotService;
