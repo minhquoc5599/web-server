@@ -1,7 +1,11 @@
 import Subscriber from "../../models/subscriber.js";
+import User from "../../models/user.js";
 import subscriberRepository from "../../data/repositories/subscriber.repository.js";
 import subscriberResponseEnum from "../../utils/enums/subscriberResponseEnum.js";
 import subscriberValidator from "../../api/validators/subscriberValidator.js";
+import entityRepository from "../../data/repositories/entity.repository.js";
+
+const userRepository = entityRepository(User);
 
 const subscriberService = {
   async subscribe(course_id, student_id) {
@@ -44,39 +48,32 @@ const subscriberService = {
           code: subscriberResponseEnum.COURSE_ID_IS_INVALID
         };
       }
-      return {
-        code: subscriberResponseEnum.SUCCESS,
-        subscribers
-      };
-    } catch (e) {
-      return {
-        code: subscriberResponseEnum.SERVER_ERROR
-      };
-    }
-  },
 
-  async getAllRatedByCourseId(course_id) {
-    try {
-      // Validate course id
-      const resultValidator = subscriberValidator.courseIdValidator(course_id);
-      if (resultValidator.code !== subscriberResponseEnum.VALIDATOR_IS_SUCCESS) return resultValidator;
-
-      const subscribers = await subscriberRepository.getAllRatedByCourseId(course_id);
-      if (!subscribers) {
-        return {
-          code: subscriberResponseEnum.COURSE_ID_IS_INVALID
-        };
+      const subscribers_rated = subscribers.filter(sub => sub.rating > 0);
+      let point = 0;
+      if (subscribers_rated.length > 0) {
+        for (var i = 0; i < subscribers_rated.length; i++) {
+          point = point + subscribers_rated[i].rating;
+        }
+        point = point / subscribers_rated.length;
+      }
+      const tmp = subscribers_rated;
+      for (var i = 0; i < tmp.length; i++) {
+        const student = await userRepository.getOneById(tmp[i].student_id);
+        subscribers_rated[i]['student_name'] = student.name;
+        subscribers_rated[i]['student_email'] = student.email;
       }
       return {
         code: subscriberResponseEnum.SUCCESS,
-        subscribers
+        subscribers,
+        subscribers_rated,
+        point
       };
     } catch (e) {
       return {
         code: subscriberResponseEnum.SERVER_ERROR
       };
     }
-
   },
 
   async rating(course_id, student_id, rating, comment) {

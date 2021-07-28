@@ -23,15 +23,6 @@ router.get('/subscribers/:id', async(req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result).end();
 });
 
-router.get('/subscribers-rated/:id', async(req, res) => {
-  const course_id = req.params.id;
-  const result = await subscriberService.getAllRatedByCourseId(course_id);
-  if (result.code !== subscriberResponseEnum.SUCCESS) {
-    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
-  }
-  res.status(httpStatusCode.SUCCESS.OK).json(result).end();
-});
-
 router.put('/rating', async(req, res) => {
   const { course_id, student_id, rating, comment } = req.body;
   const result = await subscriberService.rating(course_id, student_id, rating, comment);
