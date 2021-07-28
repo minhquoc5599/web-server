@@ -49,6 +49,16 @@ router.get('/search', async(req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 });
 
+router.get('/criteria', async(req, res) => {
+  const result = await courseService.getAllByCriteria();
+  if (result.code !== courseResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
+      .json(result)
+      .end();
+  }
+  res.status(httpStatusCode.SUCCESS.OK).json(result);
+})
+
 router.post('/course', async(req, res) => {
   // const course = req.body;
   // if (await courseService.addOne(course) === operatorType.FAIL.CREATE) {
