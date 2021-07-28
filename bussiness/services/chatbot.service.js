@@ -135,7 +135,8 @@ const handleMessage = async(sender_psid, received_message) => {
   // Check if the message contains text
   if (received_message.text) {
     if (received_message.text.includes("KH: ")) {
-      handleCoursesByName(received_message, sender_psid);
+      const keyword = received_message.text.substr(4);
+      handleCoursesByName(keyword, sender_psid);
     } else {
       // Create the payload for a basic text message
       response = sendGetStartedMenu();
@@ -155,12 +156,20 @@ const handlePostback = async(sender_psid, received_postback) => {
   if (payload.includes("COURSE_BY_NAME: ")) {
     handleCourseByName(payload, sender_psid);
   } else if (payload.includes("COURSES: ")) {
-    handleCourses(payload, sender_psid);
+    const keyword = payload.substr(9);
+    handleCoursesByName(keyword, sender_psid);
+  } else if (payload.includes("CATEGORY: ")) {
+    handleCoursesByCategoryId(payload, sender_psid);
+  } else if (payload.includes("COURSE: ")) {
+    handleCourse(payload, sender_psid);
   } else {
     switch (payload) {
       case 'SEARCH':
         response = { "text": `Hãy nhập cú pháp ${"KH: <Từ khóa cần tìm>"}!` }
         callSendAPI(sender_psid, response);
+        break;
+      case 'CATEGORY':
+        handleCategories(sender_psid);
         break;
       case 'RESTART_CHATBOT':
       case 'GET_STARTED':
@@ -237,9 +246,8 @@ const handleGetStarted = async(sender_psid) => {
   callSendAPI(sender_psid, response2);
 }
 
-const handleCoursesByName = async(received_message, sender_psid) => {
+const handleCoursesByName = async(keyword, sender_psid) => {
   let response;
-  const keyword = received_message.text.substr(4);
   const result = await axios.get(`http://academy--web.herokuapp.com/api/course-controller/search?keyword=${keyword}`);
   const data = result.data;
   if (data.code !== courseResponseEnum.SUCCESS) {
@@ -314,10 +322,45 @@ const handleCourseByName = async(payload, sender_psid) => {
   callSendAPI(sender_psid, response);
 }
 
-const handleCourses = async(payload, sender_psid) => {
+const handleCategories = async(sender_psid) => {
   let response;
-  const keyword = payload.substr(9);
-  const result = await axios.get(`http://academy--web.herokuapp.com/api/course-controller/search?keyword=${keyword}`);
+  const result = await axios.get('https://academy--web.herokuapp.com/api/category-controller/categories');
+  const data = result.data;
+  if (data.code !== courseResponseEnum.SUCCESS) {
+    response = { "text": "Không phản hồi, vui lòng thử lại" }
+  } else {
+    const categories = data.categories;
+    const buttons = [];
+    categories.map((item) => {
+      buttons.push({
+        "type": "postback",
+        "title": item.name,
+        "payload": `CATEGORY: ${item._id}`
+      });
+    })
+    const sliceButtons = buttons.slice(0, 3);
+    const jsonString = JSON.stringify(sliceButtons);
+    response = {
+      "attachment": {
+        "type": "template",
+        "payload": {
+          "template_type": "generic",
+          "elements": [{
+            "title": "Danh mục khóa học",
+            "subtitle": "Dưới đây là các danh mục",
+            "buttons": `${jsonString}`,
+          }]
+        }
+      }
+    }
+  }
+  callSendAPI(sender_psid, response);
+}
+
+const handleCoursesByCategoryId = async(payload, sender_psid) => {
+  let response;
+  const category_id = payload.substr(10);
+  const result = await axios.get(`http://academy--web.herokuapp.com/api/course-controller/courses/${category_id}`);
   const data = result.data;
   if (data.code !== courseResponseEnum.SUCCESS) {
     response = { "text": "Không phản hồi, vui lòng thử lại" }
@@ -331,12 +374,12 @@ const handleCourses = async(payload, sender_psid) => {
         "buttons": [{
           "type": "postback",
           "title": "Xem chi tiết",
-          "payload": `COURSE_BY_NAME: ${item._id}: ${keyword}`
+          "payload": `COURSE: ${item._id}`
         }]
       });
     });
 
-    let jsonString = null;
+    let jsonString;
     if (elements.length > 11) {
       const sliceElements = elements.slice(0, 11)
       jsonString = JSON.stringify(sliceElements);
@@ -354,7 +397,39 @@ const handleCourses = async(payload, sender_psid) => {
       }
     }
   }
-  // Sends the response message
+  callSendAPI(sender_psid, response);
+}
+
+const handleCourse = async(payload, sender_psid) => {
+  let response;
+  const course_id = payload.substr(8);
+  const result = await axios.get(`http://academy--web.herokuapp.com/api/course-controller/course/${course_id}`);
+  const data = result.data;
+  if (data.code !== courseResponseEnum.SUCCESS) {
+    response = { "text": "Không phản hồi, vui lòng thử lại" }
+  } else {
+    const course = data.course;
+    const elements = [];
+    elements.push({
+      "title": course.name,
+      "subtitle": `${course.description} | Giảng viên: ${course.teacher_name} | Giá: ${course.price} | Lượt xem: ${course.views}`,
+      "buttons": [{
+        "type": "postback",
+        "title": "Quay trở lại",
+        "payload": `CATEGORY: ${course.category_id}`
+      }]
+    });
+    const jsonString = JSON.stringify(elements);
+    response = {
+      "attachment": {
+        "type": "template",
+        "payload": {
+          "template_type": "generic",
+          "elements": `${jsonString}`
+        }
+      }
+    }
+  }
   callSendAPI(sender_psid, response);
 }
 
