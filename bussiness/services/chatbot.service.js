@@ -134,11 +134,15 @@ const handleMessage = async(sender_psid, received_message) => {
 
   // Check if the message contains text
   if (received_message.text) {
-    // Create the payload for a basic text message
-    response = sendGetStartedMenu();
+    if (received_message.text.includes("KH: ")) {
+      handleCoursesByName(received_message, sender_psid);
+    } else {
+      // Create the payload for a basic text message
+      response = sendGetStartedMenu();
 
-    // Sends the response message
-    callSendAPI(sender_psid, response);
+      // Sends the response message
+      callSendAPI(sender_psid, response);
+    }
   }
 }
 
@@ -148,16 +152,27 @@ const handlePostback = async(sender_psid, received_postback) => {
   let response;
   // Get the payload for the postback
   let payload = received_postback.payload;
-  switch (payload) {
-    case 'RESTART_CHATBOT':
-    case 'GET_STARTED':
-      handleGetStarted(sender_psid);
-      break;
-    default:
-      response = { "text": `Tôi không hiểu yêu cầu ${payload} của bạn` }
-        // Send the message to acknowledge the postback
-      callSendAPI(sender_psid, response);
+  if (payload.includes("COURSE_BY_NAME: ")) {
+    handleCourseByName(payload, sender_psid);
+  } else if (payload.includes("COURSES: ")) {
+    handleCourses(payload, sender_psid);
+  } else {
+    switch (payload) {
+      case 'SEARCH':
+        response = { "text": `Hãy nhập cú pháp ${"KH: <Từ khóa cần tìm>"}!` }
+        callSendAPI(sender_psid, response);
+        break;
+      case 'RESTART_CHATBOT':
+      case 'GET_STARTED':
+        handleGetStarted(sender_psid);
+        break;
+      default:
+        response = { "text": `Tôi không hiểu yêu cầu ${payload} của bạn` }
+          // Send the message to acknowledge the postback
+        callSendAPI(sender_psid, response);
+    }
   }
+
 }
 
 // Sends response messages via the Send API
@@ -220,6 +235,127 @@ const handleGetStarted = async(sender_psid) => {
   // Send the message to acknowledge the postback
   callSendAPI(sender_psid, response);
   callSendAPI(sender_psid, response2);
+}
+
+const handleCoursesByName = async(received_message, sender_psid) => {
+  let response;
+  const keyword = received_message.text.substr(4);
+  const result = await axios.get(`http://academy--web.herokuapp.com/api/course-controller/search?keyword=${keyword}`);
+  const data = result.data;
+  if (data.code !== courseResponseEnum.SUCCESS) {
+    response = { "text": "Không phản hồi, vui lòng thử lại" }
+  } else {
+    const courses = data.courses;
+    const elements = [];
+    courses.map((item) => {
+      elements.push({
+        "title": item.name,
+        "subtitle": item.description,
+        "buttons": [{
+          "type": "postback",
+          "title": "Xem chi tiết",
+          "payload": `COURSE_BY_NAME: ${item._id}: ${keyword}`
+        }]
+      });
+    });
+
+    let jsonString = null;
+    if (elements.length > 11) {
+      const sliceElements = elements.slice(0, 11)
+      jsonString = JSON.stringify(sliceElements);
+
+    } else {
+      jsonString = JSON.stringify(elements);
+    }
+    response = {
+      "attachment": {
+        "type": "template",
+        "payload": {
+          "template_type": "generic",
+          "elements": `${jsonString}`
+        }
+      }
+    }
+  }
+  // Sends the response message
+  callSendAPI(sender_psid, response);
+}
+
+const handleCourseByName = async(payload, sender_psid) => {
+  let response;
+  const array = payload.split(": ");
+  const result = await axios.get(`http://academy--web.herokuapp.com/api/course-controller/course/${array[1]}`);
+  const data = result.data;
+  if (data.code !== courseResponseEnum.SUCCESS) {
+    response = { "text": "Không phản hồi, vui lòng thử lại" }
+  } else {
+    const course = data.course;
+    const elements = [];
+    elements.push({
+      "title": course.name,
+      "subtitle": `${course.description} | Giảng viên: ${course.teacher_name} | Giá: ${course.price} | Lượt xem: ${course.views}`,
+      "buttons": [{
+        "type": "postback",
+        "title": "Quay trở lại",
+        "payload": `COURSES: ${array[2]}`
+      }]
+    });
+    const jsonString = JSON.stringify(elements);
+    response = {
+      "attachment": {
+        "type": "template",
+        "payload": {
+          "template_type": "generic",
+          "elements": `${jsonString}`
+        }
+      }
+    }
+  }
+  callSendAPI(sender_psid, response);
+}
+
+const handleCourses = async(payload, sender_psid) => {
+  let response;
+  const keyword = payload.substr(9);
+  const result = await axios.get(`http://academy--web.herokuapp.com/api/course-controller/search?keyword=${keyword}`);
+  const data = result.data;
+  if (data.code !== courseResponseEnum.SUCCESS) {
+    response = { "text": "Không phản hồi, vui lòng thử lại" }
+  } else {
+    const courses = data.courses;
+    const elements = [];
+    courses.map((item) => {
+      elements.push({
+        "title": item.name,
+        "subtitle": item.description,
+        "buttons": [{
+          "type": "postback",
+          "title": "Xem chi tiết",
+          "payload": `COURSE_BY_NAME: ${item._id}: ${keyword}`
+        }]
+      });
+    });
+
+    let jsonString = null;
+    if (elements.length > 11) {
+      const sliceElements = elements.slice(0, 11)
+      jsonString = JSON.stringify(sliceElements);
+
+    } else {
+      jsonString = JSON.stringify(elements);
+    }
+    response = {
+      "attachment": {
+        "type": "template",
+        "payload": {
+          "template_type": "generic",
+          "elements": `${jsonString}`
+        }
+      }
+    }
+  }
+  // Sends the response message
+  callSendAPI(sender_psid, response);
 }
 
 export default chatbotService;
