@@ -8,10 +8,10 @@ const rootCategoryReposity = {
 
   //READ
   getAll() {
-    return RootCategory.find();
+    return RootCategory.find().lean().exec();
   },
   getOneById(id) {
-    return RootCategory.findById(id);
+    return RootCategory.findById(id).lean().exec();
   },
   getOneByName(name) {
     return RootCategory.findOne({ name: name });

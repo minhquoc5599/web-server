@@ -6,10 +6,15 @@ import rootCategoryValidator from '../../api/validators/rootCategoryValidator.js
 const rootCategoryService = {
   async getAll() {
     try {
-      const listAllResponse = await rootCategoryReposity.getAll();
+      const root_categories = await rootCategoryReposity.getAll();
+      const tmp = root_categories;
+      for (var i = 0; i < tmp.length; i++) {
+        const categories = await categoryRepository.getAllByRootCategoryId(root_categories[i]._id);
+        root_categories[i]['categories'] = categories
+      }
       return {
         code: categoryResponseEnum.SUCCESS,
-        listAllResponse: listAllResponse
+        root_categories
       }
     } catch (e) {
       return {
@@ -49,13 +54,16 @@ const rootCategoryService = {
   async getOneById(id) {
     try {
       const root_category = await rootCategoryReposity.getOneById(id);
-
       // check root category is available or not
       if (!root_category) {
         return {
           code: categoryResponseEnum.ID_IS_INVALID
         };
       }
+      const categories = await categoryRepository.getAllByRootCategoryId(root_category._id);
+      root_category['categories'] = categories
+
+
       return {
         code: categoryResponseEnum.SUCCESS,
         root_category
