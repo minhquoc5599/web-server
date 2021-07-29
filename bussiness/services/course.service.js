@@ -91,15 +91,33 @@ const countryService = {
   async getAllByCriteria() {
     try {
       const courses = await _entityRepository.getAll();
+      const users = await userRepository.getAll();
+      const categories = await categoryRepository.getAll();
+      const subscribers = await subscriberRepository.getAll();
+      let getUserById = {},
+        getCategoryById = {},
+        getSubscribersByCourseId = {};
+      users.forEach(element => {
+        getUserById[element._id] = element;
+      });
+      categories.forEach(element => {
+        getCategoryById[element._id] = element;
+      });
+      subscribers.forEach(element => {
+        if (getSubscribersByCourseId && getSubscribersByCourseId[element.course_id])
+          getSubscribersByCourseId[element.course_id] += 1;
+        else
+          getSubscribersByCourseId[element.course_id] = 1;
+      });
+      console.log(getSubscribersByCourseId);
       let tmp = courses;
       for (var i = 0; i < tmp.length; i++) {
-        const teacher = await userRepository.getOneById(tmp[i].teacher_id);
-        const category = await categoryRepository.getOneById(tmp[i].category_id);
-        const subscribers = await subscriberRepository.getAllByCourseId(tmp[i]._id);
+        const teacher = getUserById[tmp[i].teacher_id];
+        const category = getCategoryById[tmp[i].category_id];
         courses[i]['teacher_name'] = teacher.name;
         courses[i]['teacher_email'] = teacher.email;
         courses[i]['category_name'] = category.name;
-        courses[i]['number_of_subscribers'] = subscribers.length;
+        courses[i]['number_of_subscribers'] = tmp[i]._id ? getSubscribersByCourseId[tmp[i]._id] : 0;
       }
 
       let most_viewed_courses = [];
@@ -151,9 +169,9 @@ const countryService = {
       for (var i = 0; i <= 3; i++) {
         featured_courses.push(courses[i]);
       }
+      console.log("aaaa")
 
       // 4 most number of subscribers category
-      const categories = await categoryRepository.getAll();
       tmp = categories;
       let num = 0
       for (var i = 0; i < tmp.length; i++) {
