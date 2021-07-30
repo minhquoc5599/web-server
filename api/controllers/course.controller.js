@@ -27,9 +27,10 @@ router.get('/course/:id', async(req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 });
 
-router.get('/courses/:id', async(req, res) => {
-  const id = req.params.id;
-  const result = await courseService.getAllByCategoryId({ id: id });
+router.get('/courses-by-category-id', async(req, res) => {
+  const id = req.query.categoryid;
+  const page = Number(req.query.page) || 1
+  const result = await courseService.getAllByCategoryId({ id: id, page: page });
   if (result.code !== courseResponseEnum.SUCCESS) {
     return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
       .json(result)
