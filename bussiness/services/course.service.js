@@ -116,7 +116,8 @@ const countryService = {
       const subscribers = await subscriberRepository.getAll();
       let getUserById = {},
         getCategoryById = {},
-        getSubscribersByCourseId = {};
+        getSubscribersByCourseId = {},
+        getPoint = {};
       users.forEach(element => {
         getUserById[element._id] = element;
       });
@@ -129,18 +130,36 @@ const countryService = {
         else
           getSubscribersByCourseId[element.course_id] = 1;
       });
+      let num = {};
+      subscribers.forEach(element => {
+        if (getPoint && getPoint[element.course_id]) {
+          if (element.rating > 0) {
+            getPoint[element.course_id] += element.rating;
+            num[element.course_id]++;
+          }
+        } else {
+          if (element.rating > 0) {
+            getPoint[element.course_id] = element.rating;
+            num[element.course_id] = 1;
+          } else {
+            getPoint[element.course_id] = 0;
+          }
+        }
+      })
+      const ids = Object.keys(getPoint);
+      ids.forEach(element => {
+        getPoint[element] /= num[element];
+      })
       let tmp = courses;
       for (var i = 0; i < tmp.length; i++) {
+        courses[i].price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(courses[i].price);
         const teacher = getUserById[tmp[i].teacher_id];
         const category = getCategoryById[tmp[i].category_id];
         courses[i]['teacher_name'] = teacher.name;
         courses[i]['teacher_email'] = teacher.email;
         courses[i]['category_name'] = category.name;
-        if (getSubscribersByCourseId[tmp[i]._id] > 0) {
-          courses[i]['number_of_subscribers'] = getSubscribersByCourseId[tmp[i]._id]
-        } else {
-          courses[i]['number_of_subscribers'] = 0;
-        }
+        courses[i]['number_of_subscribers'] = getSubscribersByCourseId[tmp[i]._id] ? getSubscribersByCourseId[tmp[i]._id] : 0;
+        courses[i]['point'] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
       }
 
       let most_viewed_courses = [];
@@ -159,7 +178,7 @@ const countryService = {
         }
       }
 
-      for (var i = 0; i < 9; i++) {
+      for (var i = 0; i <= 9; i++) {
         most_viewed_courses.push(courses[i]);
       }
 
@@ -174,7 +193,7 @@ const countryService = {
         }
       }
 
-      for (var i = 0; i < 9; i++) {
+      for (var i = 0; i <= 9; i++) {
         latest_courses.push(courses[i]);
       }
 
@@ -195,7 +214,7 @@ const countryService = {
 
       // 4 most number of subscribers category
       tmp = categories;
-      let num = 0
+      num = 0;
       for (var i = 0; i < tmp.length; i++) {
         for (var j = 0; j < courses.length; j++) {
           if (categories[i]._id.equals(courses[j].category_id)) {
