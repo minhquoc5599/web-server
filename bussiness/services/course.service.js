@@ -47,10 +47,20 @@ const countryService = {
   async getAllByCategoryId(request) {
     try {
       const courses = await _entityRepository.getAllByCategoryId({ category_id: request.id });
+      const users = await userRepository.getAll();
+      const categories = await categoryRepository.getAll();
+      let getUserById = {},
+        getCategoryById = {};
+      users.forEach(element => {
+        getUserById[element._id] = element;
+      });
+      categories.forEach(element => {
+        getCategoryById[element._id] = element;
+      });
       const tmp = courses;
       for (var i = 0; i < tmp.length; i++) {
-        const teacher = await userRepository.getOneById(tmp[i].teacher_id);
-        const category = await categoryRepository.getOneById(tmp[i].category_id);
+        const teacher = getUserById[tmp[i].teacher_id];
+        const category = getCategoryById[tmp[i].category_id];
         courses[i]['teacher_name'] = teacher.name;
         courses[i]['teacher_email'] = teacher.email;
         courses[i]['category_name'] = category.name;
@@ -69,10 +79,20 @@ const countryService = {
   async getAllByKeyword(request) {
     try {
       const courses = await _entityRepository.getAllByName(request.keyword);
+      const users = await userRepository.getAll();
+      const categories = await categoryRepository.getAll();
+      let getUserById = {},
+        getCategoryById = {};
+      users.forEach(element => {
+        getUserById[element._id] = element;
+      });
+      categories.forEach(element => {
+        getCategoryById[element._id] = element;
+      });
       const tmp = courses;
       for (var i = 0; i < tmp.length; i++) {
-        const teacher = await userRepository.getOneById(tmp[i].teacher_id);
-        const category = await categoryRepository.getOneById(tmp[i].category_id);
+        const teacher = getUserById[tmp[i].teacher_id];
+        const category = getCategoryById[tmp[i].category_id];
         courses[i]['teacher_name'] = teacher.name;
         courses[i]['teacher_email'] = teacher.email;
         courses[i]['category_name'] = category.name;
@@ -109,7 +129,6 @@ const countryService = {
         else
           getSubscribersByCourseId[element.course_id] = 1;
       });
-      console.log(getSubscribersByCourseId);
       let tmp = courses;
       for (var i = 0; i < tmp.length; i++) {
         const teacher = getUserById[tmp[i].teacher_id];
@@ -117,7 +136,11 @@ const countryService = {
         courses[i]['teacher_name'] = teacher.name;
         courses[i]['teacher_email'] = teacher.email;
         courses[i]['category_name'] = category.name;
-        courses[i]['number_of_subscribers'] = tmp[i]._id ? getSubscribersByCourseId[tmp[i]._id] : 0;
+        if (getSubscribersByCourseId[tmp[i]._id] > 0) {
+          courses[i]['number_of_subscribers'] = getSubscribersByCourseId[tmp[i]._id]
+        } else {
+          courses[i]['number_of_subscribers'] = 0;
+        }
       }
 
       let most_viewed_courses = [];
@@ -169,18 +192,18 @@ const countryService = {
       for (var i = 0; i <= 3; i++) {
         featured_courses.push(courses[i]);
       }
-      console.log("aaaa")
 
       // 4 most number of subscribers category
       tmp = categories;
       let num = 0
       for (var i = 0; i < tmp.length; i++) {
         for (var j = 0; j < courses.length; j++) {
-          if (categories[i]._id === courses[j].category_id) {
+          if (categories[i]._id.equals(courses[j].category_id)) {
             num += courses[j].number_of_subscribers
           }
         }
         categories[i]['number_of_subscribers'] = num;
+        num = 0;
       }
 
       for (var i = 0; i < categories.length - 1; i++) {
