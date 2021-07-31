@@ -18,7 +18,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const PORT = 5000 || process.env.PORT;
 mongoose.connect(process.env.URL_DATABASE, { useNewUrlParser: true, useUnifiedTopology: true });
 
 var corsOptions = {
@@ -65,6 +64,6 @@ app.use((error, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running at http://localhost:${PORT}`);
-})
+app.listen(process.env.PORT || 5000, () => {
+  console.log('Server has started.');
+});

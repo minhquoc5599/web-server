@@ -26,7 +26,7 @@ router.post('/add-root-category', async(req, res) => {
 router.get('/root-category/:id', async(req, res) => {
   const id = req.params.id
   const result = await rootCategoryService.getOneById(id);
-  if (result !== categoryResponseEnum.SUCCESS) {
+  if (result.code !== categoryResponseEnum.SUCCESS) {
     return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
   }
   res.status(httpStatusCode.SUCCESS.OK).json(result).end();

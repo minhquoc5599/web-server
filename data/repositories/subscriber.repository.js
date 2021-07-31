@@ -7,14 +7,14 @@ const subscriberRepository = {
   },
 
   //READ
+  getAll() {
+    return Subscriber.find().lean().exec();;
+  },
   getAllByCourseId(course_id) {
-    return Subscriber.find({ course_id: course_id });
+    return Subscriber.find({ course_id: course_id }).lean().exec();
   },
   getAllByStudentId(student_id) {
     return Subscriber.find({ student_id: student_id });
-  },
-  getAllRatedByCourseId(course_id) {
-    return Subscriber.find({ course_id: course_id, rating: { $gte: 1 } });
   },
   getOneByCourseIdStudentId(course_id, student_id) {
     return Subscriber.findOne({ course_id: course_id, student_id: student_id });

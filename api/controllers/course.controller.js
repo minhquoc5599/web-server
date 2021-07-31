@@ -6,7 +6,7 @@ import courseResponseEnum from "../../utils/enums/courseResponseEnum.js";
 
 const router = Router();
 
-router.get('/courses', async (req, res) => {
+router.get('/courses', async(req, res) => {
   const result = await courseService.getAll();
   if (result.code !== courseResponseEnum.SUCCESS) {
     return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
@@ -14,9 +14,9 @@ router.get('/courses', async (req, res) => {
       .end();
   }
   res.status(httpStatusCode.SUCCESS.OK).json(result);
-})
+});
 
-router.get('/course/:id', async (req, res) => {
+router.get('/course/:id', async(req, res) => {
   const id = req.params.id || 0;
   const result = await courseService.getOneById({ id: id });
   if (result.code !== courseResponseEnum.SUCCESS) {
@@ -25,9 +25,44 @@ router.get('/course/:id', async (req, res) => {
       .end();
   }
   res.status(httpStatusCode.SUCCESS.OK).json(result);
+});
+
+router.get('/courses-by-category-id', async(req, res) => {
+  const id = req.query.categoryid;
+  const page = Number(req.query.page) || 1
+  const result = await courseService.getAllByCategoryId({ id: id, page: page });
+  if (result.code !== courseResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
+      .json(result)
+      .end();
+  }
+  res.status(httpStatusCode.SUCCESS.OK).json(result);
+});
+
+router.get('/search', async(req, res) => {
+  const keyword = req.query.keyword;
+  const sort = req.query.sort || 'none';
+  const page = Number(req.query.page) || 1;
+  const result = await courseService.getAllBySearch({ keyword: keyword, sort: sort, page: page });
+  if (result.code !== courseResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
+      .json(result)
+      .end();
+  }
+  res.status(httpStatusCode.SUCCESS.OK).json(result);
+});
+
+router.get('/criteria', async(req, res) => {
+  const result = await courseService.getAllByCriteria();
+  if (result.code !== courseResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
+      .json(result)
+      .end();
+  }
+  res.status(httpStatusCode.SUCCESS.OK).json(result);
 })
 
-router.post('/course', async (req, res) => {
+router.post('/course', async(req, res) => {
   // const course = req.body;
   // if (await courseService.addOne(course) === operatorType.FAIL.CREATE) {
   //   res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
@@ -39,7 +74,7 @@ router.post('/course', async (req, res) => {
   // res.status(httpStatusCode.SUCCESS.CREATED).json(course);
 })
 
-router.put('/course', async (req, res) => {
+router.put('/course', async(req, res) => {
   // const course = req.body;
   // const ret = await courseService.updateOne(course);
   // if (ret === operatorType.FAIL.UPDATE) {
@@ -59,7 +94,7 @@ router.put('/course', async (req, res) => {
   // res.status(httpStatusCode.SUCCESS.CREATED).json(course);
 })
 
-router.delete('/course/:id', async (req, res) => {
+router.delete('/course/:id', async(req, res) => {
   const id = req.params.id || 0;
   const result = await courseService.deleteOne({ id: id });
   if (result.code !== courseResponseEnum.SUCCESS) {
