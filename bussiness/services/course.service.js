@@ -94,6 +94,7 @@ const countryService = {
 
       let tmp = courses;
       for (var i = 0; i < tmp.length; i++) {
+        courses[i].price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(courses[i].price);
         const teacher = getUserById[tmp[i].teacher_id];
         const category = getCategoryById[tmp[i].category_id];
         courses[i]['teacher_name'] = teacher.name;
@@ -127,30 +128,104 @@ const countryService = {
     }
   },
 
-  async getAllByKeyword(request) {
+  async getAllBySearch(request) {
     try {
+      const sort = request.sort;
+      const page = request.page;
       const courses = await _entityRepository.getAllByName(request.keyword);
+      const subscribers = await subscriberRepository.getAll();
       const users = await userRepository.getAll();
       const categories = await categoryRepository.getAll();
       let getUserById = {},
-        getCategoryById = {};
+        getCategoryById = {},
+        getSubscribersByCourseId = {},
+        getPoint = {};
+
       users.forEach(element => {
         getUserById[element._id] = element;
       });
+
       categories.forEach(element => {
         getCategoryById[element._id] = element;
       });
-      const tmp = courses;
+
+      subscribers.forEach(element => {
+        if (getSubscribersByCourseId && getSubscribersByCourseId[element.course_id])
+          getSubscribersByCourseId[element.course_id] += 1;
+        else
+          getSubscribersByCourseId[element.course_id] = 1;
+      });
+
+      let num = {};
+      subscribers.forEach(element => {
+        if (getPoint && getPoint[element.course_id]) {
+          if (element.rating > 0) {
+            getPoint[element.course_id] += element.rating;
+            num[element.course_id]++;
+          }
+        } else {
+          if (element.rating > 0) {
+            getPoint[element.course_id] = element.rating;
+            num[element.course_id] = 1;
+          } else {
+            getPoint[element.course_id] = 0;
+          }
+        }
+      })
+      const ids = Object.keys(getPoint);
+      ids.forEach(element => {
+        getPoint[element] /= num[element];
+      })
+
+      let tmp = courses;
       for (var i = 0; i < tmp.length; i++) {
         const teacher = getUserById[tmp[i].teacher_id];
         const category = getCategoryById[tmp[i].category_id];
         courses[i]['teacher_name'] = teacher.name;
         courses[i]['teacher_email'] = teacher.email;
         courses[i]['category_name'] = category.name;
+        courses[i]['number_of_subscribers'] = getSubscribersByCourseId[tmp[i]._id] ? getSubscribersByCourseId[tmp[i]._id] : 0;
+        courses[i]['point'] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
       }
+      if (sort !== 'none') {
+        switch (sort) {
+          case 'priceasc':
+            courses.sort((a, b) => a.price > b.price && 1 || -1);
+            break;
+          case 'pricedesc':
+            courses.sort((a, b) => a.price < b.price && 1 || -1);
+            break;
+          case 'pointasc':
+            courses.sort((a, b) => a.point > b.point && 1 || -1);
+            break;
+          case 'pointdesc':
+            courses.sort((a, b) => a.point < b.point && 1 || -1);
+            break;
+        }
+      }
+
+      for (var i = 0; i < tmp.length; i++) {
+        courses[i].price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(courses[i].price);
+      }
+
+      tmp = [];
+      const page_number = [];
+      let _i = 0
+      for (var i = 0; i < courses.length; i++) {
+        if (Math.floor(_i / 4) == page - 1) {
+          const data = courses[_i];
+          tmp.push(data);
+        }
+        if (_i / 4 == Math.floor(_i / 4)) {
+          page_number.push((_i / 4) + 1);
+        }
+        _i++;
+      }
+      console.log(page_number);
       return {
         code: courseResponseEnum.SUCCESS,
-        courses
+        courses: tmp,
+        page_number
       }
     } catch (e) {
       return {

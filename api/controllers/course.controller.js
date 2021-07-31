@@ -41,7 +41,9 @@ router.get('/courses-by-category-id', async(req, res) => {
 
 router.get('/search', async(req, res) => {
   const keyword = req.query.keyword;
-  const result = await courseService.getAllByKeyword({ keyword: keyword });
+  const sort = req.query.sort || 'none';
+  const page = Number(req.query.page) || 1;
+  const result = await courseService.getAllBySearch({ keyword: keyword, sort: sort, page: page });
   if (result.code !== courseResponseEnum.SUCCESS) {
     return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
       .json(result)
