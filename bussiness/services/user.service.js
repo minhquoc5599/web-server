@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
 
 import User from '../../models/user.js';
 import operatorType from '../../utils/enums/operatorType.js'
@@ -14,6 +15,7 @@ import logInResponseEnum from '../../utils/enums/logInResponseEnum.js';
 import registerResponseEnum from '../../utils/enums/registerResponseEnum.js';
 import updateOneUserResponseEnum from '../../utils/enums/updateOneUserResponseEnum.js';
 import role from '../../models/role.js';
+import jwtEnum from '../../utils/enums/jwtEnum.js';
 
 const _entityRepository = entityRepository(User);
 
@@ -70,26 +72,88 @@ const userService = {
           code: registerResponseEnum.EMAIL_IS_UNAVAILABLE
         };
       }
+      if (password !== rePassword) {
+        return {
+          code: registerResponseEnum.PASSWORD_DOES_NOT_MATCH
+        };
+      }
 
-      const salt = await bcrypt.genSalt(10);
-      password = await bcrypt.hash(password, salt);
-      const role = await roleRepository.getOneByName("student");
-      user = new User({ email, name, password, role: role.id });
       // Generate Token
-      const resultJwtGenerator = await jwtGenerator.createToken(user);
-      if (!resultJwtGenerator.isSuccess) resultJwtGenerator;
-      // Save refresh token in DB
-      const dateNow = Date.now() + 5259600000;
-      user.refresh_token = resultJwtGenerator.refreshToken;
-      user.refresh_token_expiry_time = dateNow;
-      await _entityRepository.addOne(user);
-      return {
-        code: registerResponseEnum.SUCCESS,
-        accessToken: resultJwtGenerator.accessToken,
-        refreshToken: resultJwtGenerator.refreshToken
+      const role = await roleRepository.getOneByName("student");
+      const payload = {
+        user: {
+          email: email,
+          name: name,
+          role: role.id,
+          password: password
+        },
       };
+      const token = jwt.sign(
+        payload,
+        process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "10m",
+      });
+      const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+          user: "huskarit99@gmail.com", // generated ethereal user
+          pass: "Huskarit_1999", // generated ethereal password
+        },
+      });
+      const url = `http://localhost:5000/api/user-controller/confirmation/${token}`;
+      const mailOption = {
+        from: 'huskarit99@gmail.com',
+        to: `${name} <${email}>`,
+        subject: "Confirmation Email",
+        html: `<h1>Email Confirmation</h1>
+        <h2>Hello ${name}</h2>
+        <h3>This confirmation email is going to be invalid in 10 minutes</h3>
+        <p>Thank you for registering. Please confirm your email by clicking on the under button</p>
+        <form action=${url} method="post">
+          <button type="submit">Confirm</button>
+          </form>
+        </div>`,
+      };
+
+      transporter.sendMail(mailOption, (error, info) => {
+        if (error) {
+          return console.log(error);
+        }
+      });
+
+      return {
+        code: registerResponseEnum.SUCCESS
+      }
     }
     catch (e) {
+      return {
+        code: registerResponseEnum.SERVER_ERROR
+      }
+    }
+  },
+  async confirmEmail(token) {
+    try {
+      const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+      const dateNow = Date.now();
+      const exp = decoded.exp;
+      if (dateNow >= exp * 1000) {
+        return {
+          code: jwtEnum.TOKEN_IS_EXPIRED
+        }
+      } else {
+        const salt = await bcrypt.genSalt(10);
+        const password = await bcrypt.hash(decoded.user.password, salt);
+        const user = new User({ email: decoded.user.email, name: decoded.user.name, password: password, role: decoded.user.role });
+        console.log(user);
+        await _entityRepository.addOne(user);
+        return {
+          code: registerResponseEnum.SUCCESS,
+        };
+      }
+    } catch (e) {
+      console.log(e);
       return {
         code: registerResponseEnum.SERVER_ERROR
       }
