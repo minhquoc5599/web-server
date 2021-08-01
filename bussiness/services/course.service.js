@@ -32,6 +32,7 @@ const countryService = {
   async getOneById(request) {
     try {
       const course = await _entityRepository.getOneById(request.id);
+      course.price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.price);
       const teacher = await userRepository.getOneById(course.teacher_id);
       course['teacher_name'] = teacher.name;
       course['teacher_email'] = teacher.email;
@@ -294,46 +295,21 @@ const countryService = {
       let most_subscribed_categories = [];
 
       // 10 most_viewed_courses
-      for (var i = 0; i < courses.length - 1; i++) {
-        for (var j = i + 1; j < courses.length; j++) {
-          if (courses[i].views < courses[j].views) {
-            const a = courses[i];
-            courses[i] = courses[j];
-            courses[j] = a;
-          }
-        }
-      }
+
+      courses.sort((a, b) => a.views < b.views && 1 || -1);
 
       for (var i = 0; i <= 9; i++) {
         most_viewed_courses.push(courses[i]);
       }
 
       // 10 latest courses
-      for (var i = 0; i < courses.length - 1; i++) {
-        for (var j = i + 1; j < courses.length; j++) {
-          if (courses[i].createdAt < courses[j].createdAt) {
-            const a = courses[i];
-            courses[i] = courses[j];
-            courses[j] = a;
-          }
-        }
-      }
-
+      courses.sort((a, b) => a.createdAt < b.createdAt && 1 || -1);
       for (var i = 0; i <= 9; i++) {
         latest_courses.push(courses[i]);
       }
 
       // 4 featured courses
-      for (var i = 0; i < courses.length - 1; i++) {
-        for (var j = i + 1; j < courses.length; j++) {
-          if (courses[i].number_of_subscribers < courses[j].number_of_subscribers) {
-            const a = courses[i];
-            courses[i] = courses[j];
-            courses[j] = a;
-          }
-        }
-      }
-
+      courses.sort((a, b) => a.number_of_subscribers < b.number_of_subscribers && 1 || -1);
       for (var i = 0; i <= 3; i++) {
         featured_courses.push(courses[i]);
       }
@@ -377,6 +353,88 @@ const countryService = {
     } catch (e) {
       return { code: courseResponseEnum.SERVER_ERROR }
     }
+  },
+
+  async getMostSubscribedCourses(request) {
+    try {
+      const courses = await _entityRepository.getAllByCategoryId({ category_id: request.category_id });
+      const subscribers = await subscriberRepository.getAll();
+      const users = await userRepository.getAll();
+      const categories = await categoryRepository.getAll();
+      let getUserById = {},
+        getCategoryById = {},
+        getSubscribersByCourseId = {},
+        getPoint = {};
+
+      users.forEach(element => {
+        getUserById[element._id] = element;
+      });
+
+      categories.forEach(element => {
+        getCategoryById[element._id] = element;
+      });
+
+      subscribers.forEach(element => {
+        if (getSubscribersByCourseId && getSubscribersByCourseId[element.course_id])
+          getSubscribersByCourseId[element.course_id] += 1;
+        else
+          getSubscribersByCourseId[element.course_id] = 1;
+      });
+
+      let num = {};
+      subscribers.forEach(element => {
+        if (getPoint && getPoint[element.course_id]) {
+          if (element.rating > 0) {
+            getPoint[element.course_id] += element.rating;
+            num[element.course_id]++;
+          }
+        } else {
+          if (element.rating > 0) {
+            getPoint[element.course_id] = element.rating;
+            num[element.course_id] = 1;
+          } else {
+            getPoint[element.course_id] = 0;
+          }
+        }
+      })
+      const ids = Object.keys(getPoint);
+      ids.forEach(element => {
+        getPoint[element] /= num[element];
+      })
+
+      let tmp = courses;
+      for (var i = 0; i < tmp.length; i++) {
+        courses[i].price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(courses[i].price);
+        const teacher = getUserById[tmp[i].teacher_id];
+        const category = getCategoryById[tmp[i].category_id];
+        courses[i]['teacher_name'] = teacher.name;
+        courses[i]['teacher_email'] = teacher.email;
+        courses[i]['category_name'] = category.name;
+        courses[i]['number_of_subscribers'] = getSubscribersByCourseId[tmp[i]._id] ? getSubscribersByCourseId[tmp[i]._id] : 0;
+        courses[i]['point'] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
+      }
+      courses.sort((a, b) => a.number_of_subscribers < b.number_of_subscribers && 1 || -1);
+      tmp = courses.filter(course => course._id != request.id);
+      let most_subscribed_courses = [];
+      if (tmp.length >= 5) {
+        for (var i = 0; i <= 4; i++) {
+          most_subscribed_categories.push(tmp[i]);
+        }
+        return {
+          code: courseResponseEnum.SUCCESS,
+          most_subscribed_courses,
+        }
+      } else {
+        return {
+          code: courseResponseEnum.SUCCESS,
+          most_subscribed_courses: tmp
+        }
+      }
+
+    } catch (e) {
+      return { code: courseResponseEnum.SERVER_ERROR }
+    }
+
   },
 
   addOne(request) {

@@ -17,7 +17,7 @@ router.get('/courses', async(req, res) => {
 });
 
 router.get('/course/:id', async(req, res) => {
-  const id = req.params.id || 0;
+  const id = req.params.id || '';
   const result = await courseService.getOneById({ id: id });
   if (result.code !== courseResponseEnum.SUCCESS) {
     return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
@@ -60,7 +60,19 @@ router.get('/criteria', async(req, res) => {
       .end();
   }
   res.status(httpStatusCode.SUCCESS.OK).json(result);
-})
+});
+
+router.get('/most-subscribed-courses', async(req, res) => {
+  const category_id = req.query.categoryid;
+  const id = req.query.id;
+  const result = await courseService.getMostSubscribedCourses({ id: id, category_id: category_id });
+  if (result.code !== courseResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
+      .json(result)
+      .end();
+  }
+  res.status(httpStatusCode.SUCCESS.OK).json(result);
+});
 
 router.post('/course', async(req, res) => {
   // const course = req.body;
