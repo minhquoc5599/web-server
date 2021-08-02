@@ -1,13 +1,15 @@
 import { Router } from 'express';
 
+import auth from '../middlewares/auth.js';
 import httpStatusCode from '../../utils/enums/httpStatusCode.js';
 import courseService from '../../bussiness/services/course.service.js';
 import courseResponseEnum from "../../utils/enums/courseResponseEnum.js";
 
 const router = Router();
 
-router.get('/courses', async(req, res) => {
-  const result = await courseService.getAll();
+router.get('/courses', auth(), async(req, res) => {
+  const page = Number(req.query.page) || 1
+  const result = await courseService.getAll(page);
   if (result.code !== courseResponseEnum.SUCCESS) {
     return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
       .json(result)
@@ -107,7 +109,7 @@ router.put('/course', async(req, res) => {
 })
 
 router.delete('/course/:id', async(req, res) => {
-  const id = req.params.id || 0;
+  const id = req.params.id;
   const result = await courseService.deleteOne({ id: id });
   if (result.code !== courseResponseEnum.SUCCESS) {
     return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)

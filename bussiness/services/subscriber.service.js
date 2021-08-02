@@ -42,7 +42,8 @@ const subscriberService = {
       const resultValidator = subscriberValidator.courseIdValidator(course_id);
       if (resultValidator.code !== subscriberResponseEnum.VALIDATOR_IS_SUCCESS) return resultValidator;
 
-      const subscribers = await subscriberRepository.getAllByCourseId(course_id);
+      let subscribers = await subscriberRepository.getAllByCourseId(course_id);
+      subscribers = JSON.parse(JSON.stringify(subscribers));
       if (!subscribers) {
         return {
           code: subscriberResponseEnum.COURSE_ID_IS_INVALID

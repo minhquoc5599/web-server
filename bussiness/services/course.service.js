@@ -9,20 +9,40 @@ const _entityRepository = entityRepository(Course);
 const userRepository = entityRepository(User);
 
 const countryService = {
-  async getAll() {
+  async getAll(page) {
     try {
-      const courses = await _entityRepository.getAll();
-      const tmp = courses;
+      let courses = await _entityRepository.getAll();
+      courses = JSON.parse(JSON.stringify(courses));
+      const users = await userRepository.getAll();
+      let getUserById = {};
+
+      users.forEach(element => {
+        getUserById[element._id] = element;
+      });
+      let tmp = courses;
       for (var i = 0; i < tmp.length; i++) {
-        const teacher = await userRepository.getOneById(tmp[i].teacher_id);
-        const category = await categoryRepository.getOneById(tmp[i].category_id);
+        const teacher = getUserById[tmp[i].teacher_id];
         courses[i]['teacher_name'] = teacher.name;
-        courses[i]['teacher_email'] = teacher.email;
-        courses[i]['category_name'] = category.name;
+      }
+
+      // Pagination
+      tmp = [];
+      const page_number = [];
+      let _i = 0
+      for (var i = 0; i < courses.length; i++) {
+        if (Math.floor(_i / 5) == page - 1) {
+          const data = courses[_i];
+          tmp.push(data);
+        }
+        if (_i / 5 == Math.floor(_i / 5)) {
+          page_number.push((_i / 5) + 1);
+        }
+        _i++;
       }
       return {
         code: courseResponseEnum.SUCCESS,
-        courses
+        courses: tmp,
+        page_number
       }
     } catch (e) {
       return { code: courseResponseEnum.SERVER_ERROR }
@@ -31,9 +51,20 @@ const countryService = {
 
   async getOneById(request) {
     try {
-      const course = await _entityRepository.getOneById(request.id);
+      let course = await _entityRepository.getOneById(request.id);
+      if (!course) {
+        return {
+          code: courseResponseEnum.ID_IS_INVALID
+        }
+      }
+      if (!course.status) {
+        return {
+          code: courseResponseEnum.COURSE_HAS_BEEN_DELETED
+        }
+      }
       course.price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.price);
       const teacher = await userRepository.getOneById(course.teacher_id);
+      course = JSON.parse(JSON.stringify(course));
       course['teacher_name'] = teacher.name;
       course['teacher_email'] = teacher.email;
       return {
@@ -48,7 +79,8 @@ const countryService = {
   async getAllByCategoryId(request) {
     try {
       const page = request.page;
-      const courses = await _entityRepository.getAllByCategoryId({ category_id: request.id });
+      let courses = await _entityRepository.getAllByCategoryId({ category_id: request.id, status: true });
+      courses = JSON.parse(JSON.stringify(courses));
       const subscribers = await subscriberRepository.getAll();
       const users = await userRepository.getAll();
       const categories = await categoryRepository.getAll();
@@ -104,6 +136,8 @@ const countryService = {
         courses[i]['number_of_subscribers'] = getSubscribersByCourseId[tmp[i]._id] ? getSubscribersByCourseId[tmp[i]._id] : 0;
         courses[i]['point'] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
       }
+
+      // Pagination
       tmp = [];
       const page_number = [];
       let _i = 0
@@ -133,7 +167,8 @@ const countryService = {
     try {
       const sort = request.sort;
       const page = request.page;
-      const courses = await _entityRepository.getAllByName(request.keyword);
+      let courses = await _entityRepository.getAllByName(request.keyword);
+      courses = JSON.parse(JSON.stringify(courses));
       const subscribers = await subscriberRepository.getAll();
       const users = await userRepository.getAll();
       const categories = await categoryRepository.getAll();
@@ -209,6 +244,7 @@ const countryService = {
         courses[i].price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(courses[i].price);
       }
 
+      // Pagination
       tmp = [];
       const page_number = [];
       let _i = 0
@@ -237,7 +273,8 @@ const countryService = {
 
   async getAllByCriteria() {
     try {
-      const courses = await _entityRepository.getAll();
+      let courses = await _entityRepository.getAll();
+      courses = JSON.parse(JSON.stringify(courses));
       const users = await userRepository.getAll();
       const categories = await categoryRepository.getAll();
       const subscribers = await subscriberRepository.getAll();
@@ -357,7 +394,8 @@ const countryService = {
 
   async getMostSubscribedCourses(request) {
     try {
-      const courses = await _entityRepository.getAllByCategoryId({ category_id: request.category_id });
+      let courses = await _entityRepository.getAllByCategoryId({ category_id: request.category_id });
+      courses = JSON.parse(JSON.stringify(courses));
       const subscribers = await subscriberRepository.getAll();
       const users = await userRepository.getAll();
       const categories = await categoryRepository.getAll();
@@ -452,10 +490,19 @@ const countryService = {
 
   async deleteOne(request) {
     try {
-      const course = await _entityRepository.deleteOne({ id: request.id });
+
+      // const course = await _entityRepository.getOneById(request.id);
+      // if (!course) {
+      //   return {
+      //     code: courseResponseEnum.ID_IS_INVALID
+      //   }
+      // }
+      // course.status = false;
+      // // course = JSON.parse(JSON.stringify(course));
+      // const result = await _entityRepository.updateOne(course);
+      const result = await _entityRepository.updateOne(request.id, { status: false });
       return {
         code: courseResponseEnum.SUCCESS,
-        course: course
       }
     } catch (e) {
       return { code: courseResponseEnum.SERVER_ERROR }
