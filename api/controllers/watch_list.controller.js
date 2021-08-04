@@ -23,12 +23,17 @@ router.get('/watch-list', async(req, res) => {
     const decoded = await jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
     user = decoded.user;
   };
-  const student_id = user.id;
-  const result = await watchListService.getOneByCourseIdStudentId(course_id, student_id);
-  if (result.code !== watchListResponseEnum.SUCCESS) {
-    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
+
+  if (user) {
+    const student_id = user.id;
+    const result = await watchListService.getOneByCourseIdStudentId(course_id, student_id);
+    if (result.code !== watchListResponseEnum.SUCCESS) {
+      return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
+    }
+    res.status(httpStatusCode.SUCCESS.OK).json(result).end();
   }
-  res.status(httpStatusCode.SUCCESS.CREATED).json(result).end();
+  return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).end();
+
 });
 
 router.delete('/delete-watch-list/:id', async(req, res) => {

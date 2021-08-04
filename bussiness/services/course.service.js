@@ -62,9 +62,9 @@ const countryService = {
           code: courseResponseEnum.COURSE_HAS_BEEN_DELETED
         }
       }
-      course.price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.price);
       const teacher = await userRepository.getOneById(course.teacher_id);
       course = JSON.parse(JSON.stringify(course));
+      course.price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.price);
       course['teacher_name'] = teacher.name;
       course['teacher_email'] = teacher.email;
       return {
@@ -490,17 +490,7 @@ const countryService = {
 
   async deleteOne(request) {
     try {
-
-      // const course = await _entityRepository.getOneById(request.id);
-      // if (!course) {
-      //   return {
-      //     code: courseResponseEnum.ID_IS_INVALID
-      //   }
-      // }
-      // course.status = false;
-      // // course = JSON.parse(JSON.stringify(course));
-      // const result = await _entityRepository.updateOne(course);
-      const result = await _entityRepository.updateOne(request.id, { status: false });
+      await _entityRepository.updateOneById(request.id, { status: false });
       return {
         code: courseResponseEnum.SUCCESS,
       }

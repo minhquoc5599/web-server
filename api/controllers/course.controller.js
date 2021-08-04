@@ -108,7 +108,7 @@ router.put('/course', async(req, res) => {
   // res.status(httpStatusCode.SUCCESS.CREATED).json(course);
 })
 
-router.delete('/course/:id', async(req, res) => {
+router.delete('/course/:id', auth(), async(req, res) => {
   const id = req.params.id;
   const result = await courseService.deleteOne({ id: id });
   if (result.code !== courseResponseEnum.SUCCESS) {

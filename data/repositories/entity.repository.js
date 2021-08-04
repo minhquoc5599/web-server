@@ -14,6 +14,10 @@ export default _context => {
       return _context.findById(id);
     },
 
+    getAllByRoleId(role) {
+      return _context.find({ role: role, status: true });
+    },
+
     getAllByCategoryId(query) {
       return _context.find(query);
     },
@@ -23,7 +27,10 @@ export default _context => {
     },
 
     //UPDATE
-    updateOne(id, entity) {
+    updateOne(entity) {
+      return entity.save();
+    },
+    updateOneById(id, entity) {
       return _context.findByIdAndUpdate(id, entity);
     },
 

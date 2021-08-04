@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 
 import User from '../../models/user.js';
-import operatorType from '../../utils/enums/operatorType.js'
 import jwtGenerator from '../../api/security/jwtGenerator.js';
 import logInValidator from '../../api/validators/logInValidator.js';
 import registerValidator from '../../api/validators/registerValidator.js';
@@ -14,8 +13,10 @@ import entityRepository from '../../data/repositories/entity.repository.js';
 import logInResponseEnum from '../../utils/enums/logInResponseEnum.js';
 import registerResponseEnum from '../../utils/enums/registerResponseEnum.js';
 import updateOneUserResponseEnum from '../../utils/enums/updateOneUserResponseEnum.js';
-import role from '../../models/role.js';
 import jwtEnum from '../../utils/enums/jwtEnum.js';
+import userResponseEnum from '../../utils/enums/userResponseEnum.js';
+import roleResponseEnum from '../../utils/enums/roleResponseEnum.js';
+import userValidator from '../../api/validators/userValidator.js';
 
 const _entityRepository = entityRepository(User);
 
@@ -53,8 +54,7 @@ const userService = {
         accessToken: resultJwtGenerator.accessToken,
         refreshToken: resultJwtGenerator.refreshToken
       };
-    }
-    catch (e) {
+    } catch (e) {
       return {
         code: logInResponseEnum.SERVER_ERROR
       }
@@ -91,8 +91,8 @@ const userService = {
       const token = jwt.sign(
         payload,
         process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "10m",
-      });
+          expiresIn: "10m",
+        });
       const transporter = nodemailer.createTransport({
         host: "smtp.gmail.com",
         port: 587,
@@ -126,8 +126,7 @@ const userService = {
       return {
         code: registerResponseEnum.SUCCESS
       }
-    }
-    catch (e) {
+    } catch (e) {
       return {
         code: registerResponseEnum.SERVER_ERROR
       }
@@ -163,6 +162,80 @@ const userService = {
     const user = await _entityRepository.getOneById(id);
     return {
       user
+    }
+  },
+
+  async getAllByRoleName(role_name, page) {
+    try {
+      const role = await roleRepository.getOneByName(role_name);
+      if (!role) {
+        return {
+          code: roleResponseEnum.ROLE_NAME_IS_UNAVAILABLE
+        }
+      }
+      const users = await _entityRepository.getAllByRoleId(role._id);
+
+      // Pagination
+      let tmp = [];
+      const page_number = [];
+      let _i = 0
+      for (var i = 0; i < users.length; i++) {
+        if (Math.floor(_i / 5) == page - 1) {
+          const data = users[_i];
+          tmp.push(data);
+        }
+        if (_i / 5 == Math.floor(_i / 5)) {
+          page_number.push((_i / 5) + 1);
+        }
+        _i++;
+      }
+      return {
+        code: userResponseEnum.SUCCESS,
+        users: tmp,
+        page_number
+      }
+    } catch (e) {
+      return {
+        code: userResponseEnum.SERVER_ERROR
+      }
+    }
+  },
+
+  async deleteOne(request) {
+    try {
+      await _entityRepository.updateOneById(request.id, { status: false, refresh_token: '', refresh_token_expiry_time: 0 });
+      return {
+        code: userResponseEnum.SUCCESS
+      }
+    } catch (e) {
+      return {
+        code: userResponseEnum.SERVER_ERROR
+      }
+    }
+  },
+  async addOne(email, name) {
+    try {
+      // validate request
+      const resultValidator = userValidator(email, name);
+      if (resultValidator.code !== userResponseEnum.VALIDATOR_IS_SUCCESS) return resultValidator;
+      let user = await userRepository.getOneByEmail(email);
+      if (user) {
+        return {
+          code: userResponseEnum.EMAIL_IS_UNAVAILABLE
+        }
+      }
+      const salt = await bcrypt.genSalt(10);
+      const password = await bcrypt.hash('12345678', salt);
+      const role = await roleRepository.getOneByName("teacher");
+      user = new User({ email: email, name: name, role: role._id, password: password });
+      await _entityRepository.addOne(user);
+      return {
+        code: userResponseEnum.SUCCESS
+      }
+    } catch (e) {
+      return {
+        code: userResponseEnum.SERVER_ERROR
+      }
     }
   }
 }
