@@ -8,10 +8,10 @@ const rootCategoryReposity = {
 
   //READ
   getAll() {
-    return RootCategory.find().lean().exec();
+    return RootCategory.find({ status: true });
   },
   getOneById(id) {
-    return RootCategory.findById(id).lean().exec();
+    return RootCategory.findById(id);
   },
   getOneByName(name) {
     return RootCategory.findOne({ name: name });
@@ -21,6 +21,7 @@ const rootCategoryReposity = {
   updateOne(root_category) {
     return root_category.save();
   },
+
   //DELETE
   deleteOne(id) {
     return RootCategory.deleteOne({ _id: id });

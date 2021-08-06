@@ -4,6 +4,7 @@ import courseResponseEnum from "../../utils/enums/courseResponseEnum.js";
 import entityRepository from '../../data/repositories/entity.repository.js';
 import categoryRepository from "../../data/repositories/category.repository.js";
 import subscriberRepository from "../../data/repositories/subscriber.repository.js";
+import categoryResponseEnum from "../../utils/enums/categoryResponseEnum.js";
 
 const _entityRepository = entityRepository(Course);
 const userRepository = entityRepository(User);
@@ -79,6 +80,17 @@ const countryService = {
   async getAllByCategoryId(request) {
     try {
       const page = request.page;
+      const category = await categoryRepository.getOneById(request.id);
+      if (!category) {
+        return {
+          code: categoryResponseEnum.CATEGORY_ID_IS_INVALID
+        }
+      }
+      if (!category.status) {
+        return {
+          code: categoryResponseEnum.CATEGORY_HAS_BEEN_DELETED
+        }
+      }
       let courses = await _entityRepository.getAllByCategoryId({ category_id: request.id, status: true });
       courses = JSON.parse(JSON.stringify(courses));
       const subscribers = await subscriberRepository.getAll();
