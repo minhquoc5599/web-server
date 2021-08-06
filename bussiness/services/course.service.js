@@ -510,6 +510,31 @@ const countryService = {
       return { code: courseResponseEnum.SERVER_ERROR }
     }
   },
+
+  async updateView(request) {
+    try {
+      let course = await _entityRepository.getOneById(request.id);
+      if (!course) {
+        return {
+          code: courseResponseEnum.ID_IS_INVALID
+        }
+      }
+      if (!course.status) {
+        return {
+          code: courseResponseEnum.COURSE_HAS_BEEN_DELETED
+        }
+      }
+      course.views += 1;
+      await _entityRepository.updateOne(course);
+      return {
+        code: courseResponseEnum.SUCCESS
+      }
+    } catch (e) {
+      return {
+        code: courseResponseEnum.SERVER_ERROR
+      }
+    }
+  }
 };
 
 export default countryService;

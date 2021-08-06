@@ -117,6 +117,17 @@ router.delete('/course/:id', auth(), async(req, res) => {
       .end();
   }
   res.status(httpStatusCode.SUCCESS.OK).json(result);
+});
+
+router.put('/course-view/:id', async(req, res) => {
+  const id = req.params.id;
+  const result = await courseService.updateView({ id: id });
+  if (result.code !== courseResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
+      .json(result)
+      .end();
+  }
+  res.status(httpStatusCode.SUCCESS.OK).json(result);
 })
 
 export default router;

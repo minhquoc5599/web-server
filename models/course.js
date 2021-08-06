@@ -13,7 +13,7 @@ var courseSchema = new Schema({
   category_id: { type: Schema.Types.ObjectId, ref: 'category' },
   status: { type: Boolean, require: true },
   is_completed: { type: Boolean, require: true },
-  view: { type: Number, require: true }
+  views: { type: Number, require: true }
 }, {
   timestamps: true
 });
