@@ -8,10 +8,10 @@ const subscriberRepository = {
 
   //READ
   getAll() {
-    return Subscriber.find().lean().exec();;
+    return Subscriber.find().lean().exec();
   },
   getAllByCourseId(course_id) {
-    return Subscriber.find({ course_id: course_id }).lean().exec();
+    return Subscriber.find({ course_id: course_id });
   },
   getAllByStudentId(student_id) {
     return Subscriber.find({ student_id: student_id });

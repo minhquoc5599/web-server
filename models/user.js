@@ -9,6 +9,7 @@ var userSchema = new Schema({
   status: { type: Boolean, require: true },
   refresh_token: { type: String, max: 500 },
   refresh_token_expiry_time: { type: Number },
+  status: { type: Boolean, require: true, default: true }
 });
 
 export default mongoose.model('user', userSchema);

@@ -5,10 +5,11 @@ import httpStatusCode from '../../utils/enums/httpStatusCode.js';
 import userService from '../../bussiness/services/user.service.js';
 import logInResponseEnum from '../../utils/enums/logInResponseEnum.js';
 import registerResponseEnum from '../../utils/enums/registerResponseEnum.js';
+import userResponseEnum from '../../utils/enums/userResponseEnum.js';
 
 const router = Router();
 
-router.post('/auth/user', async (req, res) => {
+router.post('/auth/user', async(req, res) => {
   const { email, password } = req.body;
   const result = await userService.login(email, password);
   if (result.code !== logInResponseEnum.SUCCESS) {
@@ -20,7 +21,7 @@ router.post('/auth/user', async (req, res) => {
   res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
 })
 
-router.post('/user', async (req, res) => {
+router.post('/user', async(req, res) => {
   const { email, name, password, rePassword } = req.body;
   const result = await userService.register(email, name, password, rePassword);
   if (result.code !== registerResponseEnum.SUCCESS) {
@@ -29,31 +30,61 @@ router.post('/user', async (req, res) => {
   res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
 })
 
-router.post('/confirmation/:token', async (req, res) => {
+router.post('/confirmation/:token', async(req, res) => {
   const token = req.params.token;
   await userService.confirmEmail(token);
   return res.redirect("http://localhost:3000/login")
 })
 
-router.delete("/refresh-token", auth(), async (req, res) => {
+router.delete("/refresh-token", auth(), async(req, res) => {
   res.clearCookie("refresh_token");
   res.clearCookie("access_token");
   res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
 })
 
-router.get("/user", auth(), async (req, res) => {
+router.get("/user", auth(), async(req, res) => {
   const result = await userService.getSelfInfo(req.user.id);
   res.status(httpStatusCode.SUCCESS.OK).json({
-    email: result.user.email,
-    name: result.user.name,
-    role: req.user.role
-  })
+      email: result.user.email,
+      name: result.user.name,
+      role: req.user.role
+    })
     .end();
 })
 
-router.post('/auth/token', auth(), async (req, res) => {
+router.post('/auth/token', auth(), async(req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json({
     role: req.user.role
   }).end();
+})
+
+router.get('/users', auth(), async(req, res) => {
+  const page = Number(req.query.page) || 1;
+  const role_name = req.query.rolename;
+  const result = await userService.getAllByRoleName(role_name, page);
+  if (result.code !== userResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
+  }
+  res.status(httpStatusCode.SUCCESS.OK).json(result).end();
+})
+
+router.delete('/user/:id', auth(), async(req, res) => {
+  const id = req.params.id;
+  const result = await userService.deleteOne({ id: id });
+  if (result.code !== userResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
+      .json(result)
+      .end();
+  }
+  res.status(httpStatusCode.SUCCESS.OK).json(result);
+})
+
+router.post('/teacher', auth(), async(req, res) => {
+  const { email, name } = req.body;
+  const result = await userService.addOne(email, name);
+  if (result.code !== userResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
+  }
+  res.status(httpStatusCode.SUCCESS.CREATED).end();
 })
 export default router;

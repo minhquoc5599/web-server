@@ -5,7 +5,7 @@ const roleRepository = {
 
   //READ
   getOneById(id) {
-    return Role.findOne({ _id: id });
+    return Role.findById(id);
   },
   getOneByName(name) {
     return Role.findOne({ name });

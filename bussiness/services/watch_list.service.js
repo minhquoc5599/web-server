@@ -55,6 +55,25 @@ const watchListService = {
     }
   },
 
+  async getOneByCourseIdStudentId(course_id, student_id) {
+    try {
+      // Validate request
+      const resultValidator = watchListValidator.addValidator(course_id, student_id);
+      if (resultValidator.code !== watchListResponseEnum.VALIDATOR_IS_SUCCESS) return resultValidator;
+
+      // Check watch list available or not
+      const watch_list = await watchListRepository.getOneByCourseIdStudentId(course_id, student_id);
+      return {
+        code: watchListResponseEnum.SUCCESS,
+        is_liked: watch_list ? true : false
+      }
+    } catch (e) {
+      return {
+        code: watchListResponseEnum.SERVER_ERROR
+      };
+    }
+  },
+
   async deleteOne(course_id, student_id) {
     try {
       // Validate request

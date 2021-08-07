@@ -1,13 +1,15 @@
 import { Router } from 'express';
 
+import auth from '../middlewares/auth.js';
 import httpStatusCode from '../../utils/enums/httpStatusCode.js';
 import courseService from '../../bussiness/services/course.service.js';
 import courseResponseEnum from "../../utils/enums/courseResponseEnum.js";
 
 const router = Router();
 
-router.get('/courses', async(req, res) => {
-  const result = await courseService.getAll();
+router.get('/courses', auth(), async(req, res) => {
+  const page = Number(req.query.page) || 1
+  const result = await courseService.getAll(page);
   if (result.code !== courseResponseEnum.SUCCESS) {
     return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
       .json(result)
@@ -17,7 +19,7 @@ router.get('/courses', async(req, res) => {
 });
 
 router.get('/course/:id', async(req, res) => {
-  const id = req.params.id || 0;
+  const id = req.params.id || '';
   const result = await courseService.getOneById({ id: id });
   if (result.code !== courseResponseEnum.SUCCESS) {
     return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
@@ -60,7 +62,19 @@ router.get('/criteria', async(req, res) => {
       .end();
   }
   res.status(httpStatusCode.SUCCESS.OK).json(result);
-})
+});
+
+router.get('/most-subscribed-courses', async(req, res) => {
+  const category_id = req.query.categoryid;
+  const id = req.query.id;
+  const result = await courseService.getMostSubscribedCourses({ id: id, category_id: category_id });
+  if (result.code !== courseResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
+      .json(result)
+      .end();
+  }
+  res.status(httpStatusCode.SUCCESS.OK).json(result);
+});
 
 router.post('/course', async(req, res) => {
   // const course = req.body;
@@ -94,9 +108,20 @@ router.put('/course', async(req, res) => {
   // res.status(httpStatusCode.SUCCESS.CREATED).json(course);
 })
 
-router.delete('/course/:id', async(req, res) => {
-  const id = req.params.id || 0;
+router.delete('/course/:id', auth(), async(req, res) => {
+  const id = req.params.id;
   const result = await courseService.deleteOne({ id: id });
+  if (result.code !== courseResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
+      .json(result)
+      .end();
+  }
+  res.status(httpStatusCode.SUCCESS.OK).json(result);
+});
+
+router.put('/course-view/:id', async(req, res) => {
+  const id = req.params.id;
+  const result = await courseService.updateView({ id: id });
   if (result.code !== courseResponseEnum.SUCCESS) {
     return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
       .json(result)
