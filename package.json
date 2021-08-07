@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@mongoosejs/double": "^0.2.0",
     "ajv": "^7.2.3",
     "axios": "^0.21.1",
     "bcryptjs": "^2.4.3",
