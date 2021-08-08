@@ -1,8 +1,20 @@
+import Course from "../../models/course.js";
+
 const courseRepository = {
   //CREATE
 
   //READ
+  getAllByCategoryId(query) {
+    return Course.find(query);
+  },
 
+  getAll() {
+    return Course.find({ status: true });
+  },
+
+  getAllByName(name) {
+    return Course.find({ $text: { $search: name }, status: true });
+  },
   //UPDATE
 
   //DELETE

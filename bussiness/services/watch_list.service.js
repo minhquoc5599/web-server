@@ -2,15 +2,14 @@ import watchListValidator from "../../api/validators/watchListValidator.js";
 import watchListRepository from "../../data/repositories/watch_list.repository.js";
 import WatchList from "../../models/watch_list.js";
 import watchListResponseEnum from "../../utils/enums/watchListResponseEnum.js";
-import Course from "../../models/course.js";
 import User from '../../models/user.js';
 import courseResponseEnum from "../../utils/enums/courseResponseEnum.js";
 import entityRepository from '../../data/repositories/entity.repository.js';
 import categoryRepository from "../../data/repositories/category.repository.js";
 import subscriberRepository from "../../data/repositories/subscriber.repository.js";
 import categoryResponseEnum from "../../utils/enums/categoryResponseEnum.js";
+import courseRepository from "../../data/repositories/course.repository.js";
 
-const _entityRepository = entityRepository(Course);
 const userRepository = entityRepository(User);
 
 const watchListService = {
@@ -30,7 +29,7 @@ const watchListService = {
 
       // Save watch list to DB
       watch_list = new WatchList({ course_id, student_id });
-      const createWatchList = await watchListRepository.addOne(watch_list)
+      await watchListRepository.addOne(watch_list)
       return {
         code: watchListResponseEnum.SUCCESS,
         watch_list
@@ -60,7 +59,7 @@ const watchListService = {
         }
       }
 
-      let courses = await _entityRepository.getAll();
+      let courses = await courseRepository.getAll();
       courses = JSON.parse(JSON.stringify(courses));
       const subscribers = await subscriberRepository.getAll();
       const users = await userRepository.getAll();
