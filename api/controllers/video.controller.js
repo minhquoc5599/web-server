@@ -7,7 +7,7 @@ import videoResponseEnum from "../../utils/enums/videoResponseEnum.js";
 
 const router = Router();
 
-router.post("/add-video", auth(["teacher"]), async (req, res) => {
+router.post("/video", auth(["teacher"]), async (req, res) => {
   const { course_id, title, video, is_previewed } = req.body;
   const result = await videoService.addOne(
     course_id,
@@ -36,7 +36,7 @@ router.get("/videos/:id", auth(["teacher"]), async (req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result).end();
 });
 
-router.delete("/delete-video/:id", auth(["teacher"]), async (req, res) => {
+router.delete("/video/:id", auth(["teacher"]), async (req, res) => {
   const id = req.params.id;
   const result = await videoService.deleteOne(id);
   if (result.code !== videoResponseEnum.SUCCESS) {
