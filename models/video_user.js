@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
-import Double from "@mongoosejs/double";
+import mongooseDouble from "mongoose-double";
+
+const Double = mongooseDouble(mongoose);
 
 const Schema = mongoose.Schema;
 
@@ -8,4 +10,4 @@ var videosUsersSchema = new Schema({
   user_id: { type: Schema.Types.ObjectId, ref: "user", require: true },
   current_time: { type: Double, require: true },
 });
-export default mongoose.model("video", videosUsersSchema);
+export default mongoose.model("videos_users", videosUsersSchema);
