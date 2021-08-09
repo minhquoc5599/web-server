@@ -3,10 +3,7 @@ import categoryResponseEnum from '../../utils/enums/categoryResponseEnum.js';
 import categoryRepository from '../../data/repositories/category.repository.js';
 import categoryValidator from '../../api/validators/categoryValidator.js';
 import rootCategoryReposity from '../../data/repositories/root_category.repository.js';
-import Course from '../../models/course.js';
-import entityRepository from '../../data/repositories/entity.repository.js';
-
-const _entityRepository = entityRepository(Course);
+import courseRepository from '../../data/repositories/course.repository.js';
 
 const categoryService = {
   // async getAll() {
@@ -26,7 +23,7 @@ const categoryService = {
   async addOne(name, root_category_id) {
     try {
       // Validate request
-      const resultValidator = categoryValidator.addValidator(root_category_id, name);
+      const resultValidator = categoryValidator.add(root_category_id, name);
       if (resultValidator.code !== categoryResponseEnum.VALIDATOR_IS_SUCCESS) return resultValidator;
 
       // Check root_category_id is available or not
@@ -41,6 +38,7 @@ const categoryService = {
           code: categoryResponseEnum.ROOT_CATEGORY_HAS_BEEN_DELETED
         }
       }
+      name = name.trim();
       if (root_category.name === name) {
         return {
           code: categoryResponseEnum.CATEGORY_NAME_IS_UNAVAILABLE
@@ -94,10 +92,10 @@ const categoryService = {
   //   }
   // },
 
-  async updateOne(id, name) {
+  async updateEntityName(id, name) {
     try {
       // Validate request
-      const resultValidator = categoryValidator.updateValidator(id, name);
+      const resultValidator = categoryValidator.updateName(id, name);
       if (resultValidator.code !== categoryResponseEnum.VALIDATOR_IS_SUCCESS) return resultValidator;
 
       // Check name root_category is available or not
@@ -107,7 +105,7 @@ const categoryService = {
           code: categoryResponseEnum.CATEGORY_NAME_IS_UNAVAILABLE
         };
       }
-
+      name = name.trim();
       // Check name category is available or not
       let category = await categoryRepository.getOneByName(name);
       if (category) {
@@ -137,8 +135,11 @@ const categoryService = {
     }
   },
 
-  async deleteOne(id) {
+  async updateEntityStatus(id, status) {
     try {
+      // Validate request
+      const resultValidator = categoryValidator.updateStatus(id, status);
+      if (resultValidator.code !== categoryResponseEnum.VALIDATOR_IS_SUCCESS) return resultValidator;
       // Check id category is available or not
       let category = await categoryRepository.getOneById(id);
       if (!category) {
@@ -146,14 +147,9 @@ const categoryService = {
           code: categoryResponseEnum.ID_IS_INVALID
         }
       }
-      if (!category.status) {
-        return {
-          code: categoryResponseEnum.CATEGORY_HAS_BEEN_DELETED
-        }
-      }
 
       // Check available courses
-      const courses = await _entityRepository.getAllByCategoryId({ category_id: id, status: true });
+      const courses = await courseRepository.getAllByCategoryId({ category_id: id, status: true });
       if (courses.length > 0) {
         return {
           code: categoryResponseEnum.AVAILABLE_COURSE_LIST
@@ -161,7 +157,7 @@ const categoryService = {
       }
 
       // Delete category
-      category.status = false;
+      category.status = status;
       await categoryRepository.updateOne(category);
       return {
         code: categoryResponseEnum.SUCCESS

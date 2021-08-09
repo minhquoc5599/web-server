@@ -4,8 +4,10 @@ import httpStatusCode from '../../utils/enums/httpStatusCode.js';
 import subscriberService from '../../bussiness/services/subscriber.service.js';
 import subscriberResponseEnum from '../../utils/enums/subscriberResponseEnum.js';
 import jwt from 'jsonwebtoken'
+import auth from '../middlewares/auth.js';
+
 const router = Router();
-router.post('/subscribe', async(req, res) => {
+router.post('/subscribe', auth(['student']), async(req, res) => {
   const { course_id } = req.body;
   const accessToken = req.cookies['access_token'];
   let user = null;
@@ -36,7 +38,7 @@ router.get('/subscribers/:id', async(req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result).end();
 });
 
-router.put('/rating', async(req, res) => {
+router.put('/rating', auth(['student']), async(req, res) => {
   const { course_id, rating, comment } = req.body;
   const accessToken = req.cookies['access_token'];
   let user = null;
