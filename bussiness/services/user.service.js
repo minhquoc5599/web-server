@@ -173,7 +173,7 @@ const userService = {
           code: roleResponseEnum.ROLE_NAME_IS_UNAVAILABLE
         }
       }
-      const users = await _entityRepository.getAllByRoleId(role._id);
+      const users = await userRepository.getAllByRoleId(role._id);
 
       // Pagination
       let tmp = [];
@@ -201,9 +201,13 @@ const userService = {
     }
   },
 
-  async deleteOne(request) {
+  async updateOneById(request) {
     try {
-      await _entityRepository.updateOneById(request.id, { status: false, refresh_token: '', refresh_token_expiry_time: 0 });
+      if (request.status) {
+        await _entityRepository.updateOneById(request.id, { status: request.status, refresh_token: '', refresh_token_expiry_time: 0 });
+      } else {
+        await _entityRepository.updateOneById(request.id, { status: request.status });
+      }
       return {
         code: userResponseEnum.SUCCESS
       }

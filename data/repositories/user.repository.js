@@ -1,5 +1,4 @@
 import User from '../../models/user.js'
-import operatorType from '../../utils/enums/operatorType.js';
 
 const userRepository = {
   //CREATE
@@ -10,6 +9,10 @@ const userRepository = {
   },
   getRefreshToken(refresh_token) {
     return User.findOne({ refresh_token: refresh_token });
+  },
+
+  getAllByRoleId(role) {
+    return User.find({ role: role });
   },
 
   //UPDATE
