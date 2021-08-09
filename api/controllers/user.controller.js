@@ -68,9 +68,9 @@ router.get('/users', auth(), async(req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result).end();
 })
 
-router.delete('/user/:id', auth(), async(req, res) => {
-  const id = req.params.id;
-  const result = await userService.deleteOne({ id: id });
+router.put('/user', auth(["admin"]), async(req, res) => {
+  const { id, status } = req.body;
+  const result = await userService.updateOneById({ id: id, status: status });
   if (result.code !== userResponseEnum.SUCCESS) {
     return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
       .json(result)

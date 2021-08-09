@@ -5,7 +5,7 @@ import entityRepository from '../../data/repositories/entity.repository.js';
 import categoryRepository from "../../data/repositories/category.repository.js";
 import subscriberRepository from "../../data/repositories/subscriber.repository.js";
 import categoryResponseEnum from "../../utils/enums/categoryResponseEnum.js";
-
+import courseRepository from "../../data/repositories/course.repository.js";
 const _entityRepository = entityRepository(Course);
 const userRepository = entityRepository(User);
 
@@ -91,7 +91,7 @@ const countryService = {
           code: categoryResponseEnum.CATEGORY_HAS_BEEN_DELETED
         }
       }
-      let courses = await _entityRepository.getAllByCategoryId({ category_id: request.id, status: true });
+      let courses = await courseRepository.getAllByCategoryId({ category_id: request.id, status: true });
       courses = JSON.parse(JSON.stringify(courses));
       const subscribers = await subscriberRepository.getAll();
       const users = await userRepository.getAll();
@@ -179,7 +179,7 @@ const countryService = {
     try {
       const sort = request.sort;
       const page = request.page;
-      let courses = await _entityRepository.getAllByName(request.keyword);
+      let courses = await courseRepository.getAllByName(request.keyword);
       courses = JSON.parse(JSON.stringify(courses));
       const subscribers = await subscriberRepository.getAll();
       const users = await userRepository.getAll();
@@ -285,7 +285,7 @@ const countryService = {
 
   async getAllByCriteria() {
     try {
-      let courses = await _entityRepository.getAll();
+      let courses = await courseRepository.getAll();
       courses = JSON.parse(JSON.stringify(courses));
       const users = await userRepository.getAll();
       const categories = await categoryRepository.getAll();
@@ -406,7 +406,7 @@ const countryService = {
 
   async getMostSubscribedCourses(request) {
     try {
-      let courses = await _entityRepository.getAllByCategoryId({ category_id: request.category_id });
+      let courses = await courseRepository.getAllByCategoryId({ category_id: request.category_id });
       courses = JSON.parse(JSON.stringify(courses));
       const subscribers = await subscriberRepository.getAll();
       const users = await userRepository.getAll();
@@ -500,9 +500,9 @@ const countryService = {
     // }
   },
 
-  async deleteOne(request) {
+  async updateOneById(request) {
     try {
-      await _entityRepository.updateOneById(request.id, { status: false });
+      await _entityRepository.updateOneById(request.id, { status: request.status });
       return {
         code: courseResponseEnum.SUCCESS,
       }

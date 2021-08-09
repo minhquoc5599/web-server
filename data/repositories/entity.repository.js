@@ -7,23 +7,11 @@ export default _context => {
 
     //READ
     getAll() {
-      return _context.find({ status: true });
+      return _context.find();
     },
 
     getOneById(id) {
       return _context.findById(id);
-    },
-
-    getAllByRoleId(role) {
-      return _context.find({ role: role, status: true });
-    },
-
-    getAllByCategoryId(query) {
-      return _context.find(query);
-    },
-
-    getAllByName(name) {
-      return _context.find({ $text: { $search: name }, status: true });
     },
 
     //UPDATE

@@ -88,7 +88,7 @@ router.post('/course', async(req, res) => {
   // res.status(httpStatusCode.SUCCESS.CREATED).json(course);
 })
 
-router.put('/course', async(req, res) => {
+router.put('/course-by-teacher', auth(['teacher']), async(req, res) => {
   // const course = req.body;
   // const ret = await courseService.updateOne(course);
   // if (ret === operatorType.FAIL.UPDATE) {
@@ -108,9 +108,9 @@ router.put('/course', async(req, res) => {
   // res.status(httpStatusCode.SUCCESS.CREATED).json(course);
 })
 
-router.delete('/course/:id', auth(), async(req, res) => {
-  const id = req.params.id;
-  const result = await courseService.deleteOne({ id: id });
+router.put('/course-by-admin', auth(['admin']), async(req, res) => {
+  const { id, status } = req.body;
+  const result = await courseService.updateOneById({ id: id, status: status });
   if (result.code !== courseResponseEnum.SUCCESS) {
     return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
       .json(result)
