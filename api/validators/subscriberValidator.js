@@ -1,7 +1,7 @@
 import subscriberResponseEnum from "../../utils/enums/subscriberResponseEnum.js";
 
 const subscriberValidator = {
-  addValidator(course_id, student_id) {
+  add(course_id, student_id) {
     if (!course_id) {
       return {
         code: subscriberResponseEnum.COURSE_ID_IS_EMPTY
@@ -16,7 +16,7 @@ const subscriberValidator = {
       code: subscriberResponseEnum.VALIDATOR_IS_SUCCESS
     };
   },
-  courseIdValidator(course_id) {
+  courseId(course_id) {
     if (!course_id) {
       return {
         code: subscriberResponseEnum.COURSE_ID_IS_EMPTY
@@ -26,7 +26,7 @@ const subscriberValidator = {
       code: subscriberResponseEnum.VALIDATOR_IS_SUCCESS
     };
   },
-  studentIdValidator(student_id) {
+  studentId(student_id) {
     if (!student_id) {
       return {
         code: subscriberResponseEnum.STUDENT_ID_IS_EMPTY
@@ -36,7 +36,7 @@ const subscriberValidator = {
       code: subscriberResponseEnum.VALIDATOR_IS_SUCCESS
     }
   },
-  updateValidator(course_id, student_id, rating) {
+  update(course_id, student_id, rating) {
     if (!course_id) {
       return {
         code: subscriberResponseEnum.COURSE_ID_IS_EMPTY

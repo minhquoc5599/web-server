@@ -154,12 +154,12 @@ const countryService = {
       const page_number = [];
       let _i = 0
       for (var i = 0; i < courses.length; i++) {
-        if (Math.floor(_i / 4) == page - 1) {
+        if (Math.floor(_i / 8) == page - 1) {
           const data = courses[_i];
           tmp.push(data);
         }
-        if (_i / 4 == Math.floor(_i / 4)) {
-          page_number.push((_i / 4) + 1);
+        if (_i / 8 == Math.floor(_i / 8)) {
+          page_number.push((_i / 8) + 1);
         }
         _i++;
       }
@@ -261,12 +261,12 @@ const countryService = {
       const page_number = [];
       let _i = 0
       for (var i = 0; i < courses.length; i++) {
-        if (Math.floor(_i / 4) == page - 1) {
+        if (Math.floor(_i / 8) == page - 1) {
           const data = courses[_i];
           tmp.push(data);
         }
-        if (_i / 4 == Math.floor(_i / 4)) {
-          page_number.push((_i / 4) + 1);
+        if (_i / 8 == Math.floor(_i / 8)) {
+          page_number.push((_i / 8) + 1);
         }
         _i++;
       }
@@ -468,7 +468,7 @@ const countryService = {
       let most_subscribed_courses = [];
       if (tmp.length >= 5) {
         for (var i = 0; i <= 4; i++) {
-          most_subscribed_categories.push(tmp[i]);
+          most_subscribed_courses.push(tmp[i]);
         }
         return {
           code: courseResponseEnum.SUCCESS,
