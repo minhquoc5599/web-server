@@ -24,7 +24,7 @@ router.post("/video", auth(["teacher"]), async (req, res) => {
   res.status(httpStatusCode.SUCCESS.CREATED).json(result).end();
 });
 
-router.get("/videos/:id", auth(["teacher"]), async (req, res) => {
+router.get("/videos/:id", async (req, res) => {
   const course_id = req.params.id;
   const result = await videoService.getAllByCourseId(course_id);
   if (result.code !== videoResponseEnum.SUCCESS) {

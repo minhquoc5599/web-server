@@ -19,9 +19,16 @@ cloudinary.config({
 
 const courseService = {
   async addOne(request) {
-    const result = await cloudinary.v2.uploader.upload(request.image);
-    console.log(result.secure_url);
-    return result;
+    try {
+      const result = await cloudinary.v2.uploader.upload(request.image, {
+        resource_type: "video",
+      });
+      console.log(result.secure_url);
+      return result;
+    } catch (e) {
+      console.log(e);
+      return e;
+    }
   },
 
   async getAll(page) {

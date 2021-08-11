@@ -92,7 +92,6 @@ router.get("/most-subscribed-courses", async (req, res) => {
 router.post("/course", async (req, res) => {
   const { image } = req.body;
   const result = await courseService.addOne({ image });
-  console.log(result);
   res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
 });
 
