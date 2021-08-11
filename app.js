@@ -2,6 +2,7 @@ import cors from "cors";
 import morgan from "morgan";
 import express from "express";
 import mongoose from "mongoose";
+import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 
 import httpStatusCode from "./utils/enums/httpStatusCode.js";
@@ -17,7 +18,6 @@ import chatbotController from "./api/controllers/chatbot.controller.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-const app = express();
 mongoose.connect(process.env.URL_DATABASE, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -28,20 +28,11 @@ var corsOptions = {
   credentials: true,
 };
 
+const app = express();
+app.use(express.json({ limit: "50mb" }));
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(morgan("dev"));
-app.use(express.json());
-
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/views/home.html");
-});
-app.get("/actor", (req, res) => {
-  res.sendFile(__dirname + "/views/crud-actor.html");
-});
-app.get("/category", (req, res) => {
-  res.sendFile(__dirname + "/views/crud-category.html");
-});
 
 app.use("/api/user-controller", userController);
 app.use("/api/course-controller", courseController);
