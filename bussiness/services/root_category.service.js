@@ -3,16 +3,22 @@ import categoryResponseEnum from '../../utils/enums/categoryResponseEnum.js';
 import rootCategoryReposity from '../../data/repositories/root_category.repository.js';
 import categoryRepository from '../../data/repositories/category.repository.js';
 import rootCategoryValidator from '../../api/validators/rootCategoryValidator.js';
+import entityRepository from '../../data/repositories/entity.repository.js';
+import Category from '../../models/category.js';
 
 const rootCategoryService = {
   async getAll() {
     try {
+      let tmp = {};
       let root_categories = await rootCategoryReposity.getAll();
-      const tmp = root_categories;
+      let categories = await categoryRepository.getAll();
       root_categories = JSON.parse(JSON.stringify(root_categories));
-      for (var i = 0; i < tmp.length; i++) {
-        const categories = await categoryRepository.getAllByRootCategoryId(root_categories[i]._id);
-        root_categories[i]['categories'] = categories
+      categories.forEach(element => {
+        if (!tmp[element.root_category_id]) tmp[element.root_category_id] = [];
+        tmp[element.root_category_id].push(element);
+      });
+      for (let i = 0; i < root_categories.length; i++) {
+        root_categories[i]['categories'] = tmp[root_categories[i]._id];
       }
       return {
         code: categoryResponseEnum.SUCCESS,
@@ -27,12 +33,16 @@ const rootCategoryService = {
 
   async getAllByPage(page) {
     try {
-      let root_categories = await rootCategoryReposity.getAll();
-      let tmp = root_categories;
+      let tmp = {};
+      let root_categories = await entityRepository(RootCategory).getAll();
+      let categories = await entityRepository(Category).getAll();
       root_categories = JSON.parse(JSON.stringify(root_categories));
-      for (var i = 0; i < tmp.length; i++) {
-        const categories = await categoryRepository.getAllByRootCategoryId(root_categories[i]._id);
-        root_categories[i]['categories'] = categories
+      categories.forEach(element => {
+        if (!tmp[element.root_category_id]) tmp[element.root_category_id] = [];
+        tmp[element.root_category_id].push(element);
+      });
+      for (let i = 0; i < root_categories.length; i++) {
+        root_categories[i]['categories'] = tmp[root_categories[i]._id];
       }
 
       // Pagination
@@ -56,6 +66,7 @@ const rootCategoryService = {
         page_number
       }
     } catch (e) {
+      console.log(e);
       return {
         code: categoryResponseEnum.SERVER_ERROR
       }
@@ -65,9 +76,9 @@ const rootCategoryService = {
   async addOne(name) {
     try {
       // Validate request
-      const resultValidator = rootCategoryValidator(name);
+      const resultValidator = rootCategoryValidator.add(name);
       if (resultValidator.code !== categoryResponseEnum.VALIDATOR_IS_SUCCESS) return resultValidator;
-
+      name = name.trim();
       // Check name root category is available or not
       let root_category = await rootCategoryReposity.getOneByName(name);
       if (root_category) {
@@ -113,12 +124,14 @@ const rootCategoryService = {
   //   }
   // },
 
-  async updateOne(id, name) {
+
+
+  async updateEntityName(id, name) {
     try {
       // Validate request
-      const resultValidator = rootCategoryValidator(name);
+      const resultValidator = rootCategoryValidator.updateName(id, name);
       if (resultValidator.code !== categoryResponseEnum.VALIDATOR_IS_SUCCESS) return resultValidator;
-
+      name = name.trim();
       // Check name root_category is available or not
       let root_category = await rootCategoryReposity.getOneByName(name);
       if (root_category) {
@@ -148,19 +161,18 @@ const rootCategoryService = {
     }
   },
 
-  async deleteOne(id) {
+  async updateEntityStatus(id, status) {
     try {
+      // Validate request
+      const resultValidator = rootCategoryValidator.updateStatus(id, status);
+      if (resultValidator.code !== categoryResponseEnum.VALIDATOR_IS_SUCCESS) return resultValidator;
+
       // Check id root_category is available or not
       let root_category = await rootCategoryReposity.getOneById(id);
       if (!root_category) {
         return {
           code: categoryResponseEnum.ID_IS_INVALID
         };
-      }
-      if (!root_category.status) {
-        return {
-          code: categoryResponseEnum.ROOT_CATEGORY_HAS_BEEN_DELETED
-        }
       }
 
       // Check available category
@@ -170,9 +182,8 @@ const rootCategoryService = {
           code: categoryResponseEnum.CATEGORY_IS_AVAILABLE
         };
       }
-
-      // Delete root category
-      root_category.status = false;
+      // Update root category to DB
+      root_category.status = status
       await rootCategoryReposity.updateOne(root_category);
       return {
         code: categoryResponseEnum.SUCCESS
@@ -180,9 +191,45 @@ const rootCategoryService = {
     } catch (e) {
       return {
         code: categoryResponseEnum.SERVER_ERROR
-      }
+      };
     }
-  }
+  },
+
+  // async deleteOne(id) {
+  //   try {
+  //     // Check id root_category is available or not
+  //     let root_category = await rootCategoryReposity.getOneById(id);
+  //     if (!root_category) {
+  //       return {
+  //         code: categoryResponseEnum.ID_IS_INVALID
+  //       };
+  //     }
+  //     if (!root_category.status) {
+  //       return {
+  //         code: categoryResponseEnum.ROOT_CATEGORY_HAS_BEEN_DELETED
+  //       }
+  //     }
+
+  //     // Check available category
+  //     const categories = await categoryRepository.getAllByRootCategoryId(id);
+  //     if (categories.length > 0) {
+  //       return {
+  //         code: categoryResponseEnum.CATEGORY_IS_AVAILABLE
+  //       };
+  //     }
+
+  //     // Delete root category
+  //     root_category.status = false;
+  //     await rootCategoryReposity.updateOne(root_category);
+  //     return {
+  //       code: categoryResponseEnum.SUCCESS
+  //     };
+  //   } catch (e) {
+  //     return {
+  //       code: categoryResponseEnum.SERVER_ERROR
+  //     }
+  //   }
+  // }
 }
 
 export default rootCategoryService;

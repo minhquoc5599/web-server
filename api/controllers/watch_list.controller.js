@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken'
 import auth from '../middlewares/auth.js';
 const router = Router();
 
-router.get('/watch-lists', auth(), async(req, res) => {
+router.get('/watch-lists', auth(['student']), async(req, res) => {
   const page = Number(req.query.page) || 1;
   const accessToken = req.cookies['access_token'];
   let user = null;
@@ -44,7 +44,7 @@ router.get('/watch-list', auth(), async(req, res) => {
 
 });
 
-router.delete('/delete-watch-list/:id', auth(), async(req, res) => {
+router.delete('/delete-watch-list/:id', auth(['student']), async(req, res) => {
   const course_id = req.params.id;
   console.log(course_id);
   const accessToken = req.cookies['access_token'];
@@ -61,7 +61,7 @@ router.delete('/delete-watch-list/:id', auth(), async(req, res) => {
   res.status(httpStatusCode.SUCCESS.NO_CONTENT).send(result).end();
 });
 
-router.post('/add-watch-list', auth(), async(req, res) => {
+router.post('/add-watch-list', auth(['student']), async(req, res) => {
   const { course_id } = req.body;
   const accessToken = req.cookies['access_token'];
   let user = null;

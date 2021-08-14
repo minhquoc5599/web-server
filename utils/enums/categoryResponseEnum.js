@@ -1,5 +1,6 @@
 export default {
   SUCCESS: "operation_is_success",
+  STATUS_IS_EMPTY: "status_is_empty",
   VALIDATOR_IS_SUCCESS: "validator_is_success",
   ID_IS_INVALID: "id_is_invalid",
   ID_IS_EMPTY: "id_is_empty",

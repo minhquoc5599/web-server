@@ -11,5 +11,6 @@ export default {
   RATING_IS_LESS_THAN_1_STARS: 'rating_is_less_than_1_stars',
   COURSE_HAS_BEEN_RATED: 'course_has_been_rated',
   COURSE_HAS_BEEN_SUBSCRIBED: 'course_has_been_subscribed',
+  SUBSCRIBER_LIST_IS_EMPTY: 'subscriber_list_is_empty',
   SERVER_ERROR: "server_error"
 }
