@@ -71,6 +71,33 @@ const courseService = {
     }
   },
 
+  async getAllByTeacherId(page, id) {
+    try {
+      const courses = await courseRepository.getAllByTeacherId(id);
+      // Pagination
+      const tmp = [];
+      const page_number = [];
+      let _i = 0;
+      for (var i = 0; i < courses.length; i++) {
+        if (Math.floor(_i / 5) == page - 1) {
+          const data = courses[_i];
+          tmp.push(data);
+        }
+        if (_i / 5 == Math.floor(_i / 5)) {
+          page_number.push(_i / 5 + 1);
+        }
+        _i++;
+      }
+      return {
+        code: courseResponseEnum.SUCCESS,
+        courses: tmp,
+        page_number,
+      };
+    } catch (e) {
+      return { code: courseResponseEnum.SERVER_ERROR };
+    }
+  },
+
   async getOneById(request) {
     try {
       let course = await _entityRepository.getOneById(request.id);

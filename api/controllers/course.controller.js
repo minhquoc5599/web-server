@@ -7,6 +7,19 @@ import courseResponseEnum from "../../utils/enums/courseResponseEnum.js";
 
 const router = Router();
 
+router.get("/teacher/courses", auth(["teacher"]), async (req, res) => {
+  const page = Number(req.query.page) || 1;
+  const id = req.query.id;
+  const result = await courseService.getAllByTeacherId(page, id);
+  if (result.code !== courseResponseEnum.SUCCESS) {
+    return res
+      .status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
+      .json(result)
+      .end();
+  }
+  res.status(httpStatusCode.SUCCESS.OK).json(result);
+});
+
 router.get("/courses", auth(), async (req, res) => {
   const page = Number(req.query.page) || 1;
   const result = await courseService.getAll(page);

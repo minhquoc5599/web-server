@@ -34,6 +34,12 @@ app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(morgan("dev"));
 
+app.get("/", (req, res) => {
+  res.status(httpStatusCode.SUCCESS.OK).json({
+    msg: "Hello my friend",
+  });
+});
+
 app.use("/api/user-controller", userController);
 app.use("/api/course-controller", courseController);
 app.use("/api/category-controller", categoryController);
@@ -56,7 +62,7 @@ app.use((error, req, res, next) => {
       error: {
         status:
           error.status || httpStatusCode.SERVER_ERRORS.INTERNAL_SERVER_ERROR,
-        message: error.message || "Internal Server Error",
+        message: error.mee || "Internal Server Error",
       },
     });
 });

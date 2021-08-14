@@ -4,6 +4,10 @@ const courseRepository = {
   //CREATE
 
   //READ
+  getAllByTeacherId(id) {
+    return Course.find({ teacher_id: id, status: true });
+  },
+
   getAllByCategoryId(query) {
     return Course.find(query);
   },
@@ -18,7 +22,6 @@ const courseRepository = {
   //UPDATE
 
   //DELETE
-
 };
 
 export default courseRepository;
