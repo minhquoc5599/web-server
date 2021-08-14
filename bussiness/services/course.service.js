@@ -226,6 +226,7 @@ const countryService = {
       })
 
       let tmp = courses;
+      const date = new Date();
       for (var i = 0; i < tmp.length; i++) {
         const teacher = getUserById[tmp[i].teacher_id];
         const category = getCategoryById[tmp[i].category_id];
@@ -234,7 +235,29 @@ const countryService = {
         courses[i]['category_name'] = category.name;
         courses[i]['number_of_subscribers'] = getSubscribersByCourseId[tmp[i]._id] ? getSubscribersByCourseId[tmp[i]._id] : 0;
         courses[i]['point'] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
+        const createdAt = new Date(courses[i].createdAt);
+        const diffDate = Math.abs(date - createdAt);
+        const days = diffDate / (1000 * 3600 * 24);
+        if (days <= 7) {
+          courses[i]['newest'] = true;
+        }
       }
+      courses.sort((a, b) => a.number_of_subscribers < b.number_of_subscribers && 1 || -1)
+      if (courses.length < 4) {
+        tmp = courses.length;
+        for (var i = 0; i < tmp; i++) {
+          if (courses[i].number_of_subscribers >= 1 && !courses[i].newest) {
+            courses[i]['best_seller'] = true;
+          }
+        }
+      } else {
+        for (var i = 0; i < 4; i++) {
+          if (courses[i].number_of_subscribers >= 1 && !courses[i].newest) {
+            courses[i]['best_seller'] = true;
+          }
+        }
+      }
+
       if (sort !== 'none') {
         switch (sort) {
           case 'priceasc':
@@ -270,7 +293,6 @@ const countryService = {
         }
         _i++;
       }
-      console.log(page_number);
       return {
         code: courseResponseEnum.SUCCESS,
         courses: tmp,
