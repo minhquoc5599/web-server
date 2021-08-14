@@ -1,9 +1,12 @@
-import User from '../../models/user.js'
+import User from "../../models/user.js";
 
 const userRepository = {
   //CREATE
 
   //READ
+  getOneById(id) {
+    return User.findById(id).populate("role");
+  },
   getOneByEmail(email) {
     return User.findOne({ email });
   },
@@ -20,7 +23,7 @@ const userRepository = {
   //DELETE
   deleteOne(email) {
     return User.deleteOne({ email: email });
-  }
-}
+  },
+};
 
 export default userRepository;

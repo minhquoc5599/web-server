@@ -1,4 +1,4 @@
-export default _context => {
+export default (_context) => {
   return {
     //CREATE
     addOne(entity) {
@@ -26,6 +26,6 @@ export default _context => {
     async deleteOne(id) {
       await _context.deleteOne({ _id: id });
       return await _context.save();
-    }
-  }
+    },
+  };
 };
