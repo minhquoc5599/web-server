@@ -125,17 +125,23 @@ const watchListService = {
         }
       }
 
+      if (courseWatchList.length === 0) {
+        return {
+          code: watchListResponseEnum.WATCH_LIST_IS_EMPTY
+        }
+      }
+
       // Pagination
       tmp = [];
       const page_number = [];
       let _i = 0
       for (var i = 0; i < courseWatchList.length; i++) {
-        if (Math.floor(_i / 4) == page - 1) {
+        if (Math.floor(_i / 8) == page - 1) {
           const data = courseWatchList[_i];
           tmp.push(data);
         }
-        if (_i / 4 == Math.floor(_i / 4)) {
-          page_number.push((_i / 4) + 1);
+        if (_i / 8 == Math.floor(_i / 8)) {
+          page_number.push((_i / 8) + 1);
         }
         _i++;
       }

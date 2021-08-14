@@ -217,12 +217,12 @@ const courseService = {
       const page_number = [];
       let _i = 0;
       for (var i = 0; i < courses.length; i++) {
-        if (Math.floor(_i / 4) == page - 1) {
+        if (Math.floor(_i / 8) == page - 1) {
           const data = courses[_i];
           tmp.push(data);
         }
-        if (_i / 4 == Math.floor(_i / 4)) {
-          page_number.push(_i / 4 + 1);
+        if (_i / 8 == Math.floor(_i / 8)) {
+          page_number.push(_i / 8 + 1);
         }
         _i++;
       }
@@ -291,6 +291,7 @@ const courseService = {
       });
 
       let tmp = courses;
+      const date = new Date();
       for (var i = 0; i < tmp.length; i++) {
         const teacher = getUserById[tmp[i].teacher_id];
         const category = getCategoryById[tmp[i].category_id];
@@ -303,7 +304,31 @@ const courseService = {
           ? getSubscribersByCourseId[tmp[i]._id]
           : 0;
         courses[i]["point"] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
+        const createdAt = new Date(courses[i].createdAt);
+        const diffDate = Math.abs(date - createdAt);
+        const days = diffDate / (1000 * 3600 * 24);
+        if (days <= 7) {
+          courses[i]["newest"] = true;
+        }
       }
+      courses.sort(
+        (a, b) => (a.number_of_subscribers < b.number_of_subscribers && 1) || -1
+      );
+      if (courses.length < 4) {
+        tmp = courses.length;
+        for (var i = 0; i < tmp; i++) {
+          if (courses[i].number_of_subscribers >= 1 && !courses[i].newest) {
+            courses[i]["best_seller"] = true;
+          }
+        }
+      } else {
+        for (var i = 0; i < 4; i++) {
+          if (courses[i].number_of_subscribers >= 1 && !courses[i].newest) {
+            courses[i]["best_seller"] = true;
+          }
+        }
+      }
+
       if (sort !== "none") {
         switch (sort) {
           case "priceasc":
@@ -333,16 +358,15 @@ const courseService = {
       const page_number = [];
       let _i = 0;
       for (var i = 0; i < courses.length; i++) {
-        if (Math.floor(_i / 4) == page - 1) {
+        if (Math.floor(_i / 8) == page - 1) {
           const data = courses[_i];
           tmp.push(data);
         }
-        if (_i / 4 == Math.floor(_i / 4)) {
-          page_number.push(_i / 4 + 1);
+        if (_i / 8 == Math.floor(_i / 8)) {
+          page_number.push(_i / 8 + 1);
         }
         _i++;
       }
-      console.log(page_number);
       return {
         code: courseResponseEnum.SUCCESS,
         courses: tmp,
@@ -565,7 +589,7 @@ const courseService = {
       let most_subscribed_courses = [];
       if (tmp.length >= 5) {
         for (var i = 0; i <= 4; i++) {
-          most_subscribed_categories.push(tmp[i]);
+          most_subscribed_courses.push(tmp[i]);
         }
         return {
           code: courseResponseEnum.SUCCESS,

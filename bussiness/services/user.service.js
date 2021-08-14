@@ -243,6 +243,8 @@ const userService = {
       const resultValidator = userValidator(email, name);
       if (resultValidator.code !== userResponseEnum.VALIDATOR_IS_SUCCESS)
         return resultValidator;
+      email = email.trim();
+      name = name.trim();
       let user = await userRepository.getOneByEmail(email);
       if (user) {
         return {
