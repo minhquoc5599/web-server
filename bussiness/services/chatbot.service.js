@@ -2,8 +2,15 @@ import request from 'request';
 import dotenv from 'dotenv';
 dotenv.config();
 import axios from 'axios';
-import categoryResponseEnum from '../../utils/enums/categoryResponseEnum.js';
-import courseResponseEnum from '../../utils/enums/courseResponseEnum.js';
+import User from '../../models/user.js';
+import courseResponseEnum from "../../utils/enums/courseResponseEnum.js";
+import entityRepository from '../../data/repositories/entity.repository.js';
+import categoryRepository from "../../data/repositories/category.repository.js";
+import subscriberRepository from "../../data/repositories/subscriber.repository.js";
+import categoryResponseEnum from "../../utils/enums/categoryResponseEnum.js";
+import courseRepository from "../../data/repositories/course.repository.js";
+const userRepository = entityRepository(User);
+
 
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
@@ -46,6 +53,7 @@ const chatbotService = {
   },
 
   async getWebHook(req, res) {
+
     // Parse the query params
     let mode = req.query['hub.mode'];
     let token = req.query['hub.verify_token'];
@@ -93,6 +101,7 @@ const chatbotService = {
       }
     });
   },
+
   async setupPersistentMenu(req, res) {
     // Construct the message body
     let request_body = {
@@ -124,7 +133,162 @@ const chatbotService = {
         console.error("Unable to setup persistent menu:" + err);
       }
     });
-  }
+  },
+
+  async getCoursesByCategoryId(request) {
+    try {
+      const category = await categoryRepository.getOneById(request.id);
+      if (!category) {
+        return {
+          code: categoryResponseEnum.CATEGORY_ID_IS_INVALID
+        }
+      }
+      if (!category.status) {
+        return {
+          code: categoryResponseEnum.CATEGORY_HAS_BEEN_DELETED
+        }
+      }
+      let courses = await courseRepository.getAllByCategoryId({ category_id: request.id, status: true });
+      courses = JSON.parse(JSON.stringify(courses));
+      const subscribers = await subscriberRepository.getAll();
+      const users = await userRepository.getAll();
+      const categories = await categoryRepository.getAll();
+      let getUserById = {},
+        getCategoryById = {},
+        getSubscribersByCourseId = {},
+        getPoint = {};
+
+      users.forEach(element => {
+        getUserById[element._id] = element;
+      });
+
+      categories.forEach(element => {
+        getCategoryById[element._id] = element;
+      });
+
+      subscribers.forEach(element => {
+        if (getSubscribersByCourseId && getSubscribersByCourseId[element.course_id])
+          getSubscribersByCourseId[element.course_id] += 1;
+        else
+          getSubscribersByCourseId[element.course_id] = 1;
+      });
+
+      let num = {};
+      subscribers.forEach(element => {
+        if (getPoint && getPoint[element.course_id]) {
+          if (element.rating > 0) {
+            getPoint[element.course_id] += element.rating;
+            num[element.course_id]++;
+          }
+        } else {
+          if (element.rating > 0) {
+            getPoint[element.course_id] = element.rating;
+            num[element.course_id] = 1;
+          } else {
+            getPoint[element.course_id] = 0;
+          }
+        }
+      })
+      const ids = Object.keys(getPoint);
+      ids.forEach(element => {
+        getPoint[element] /= num[element];
+      })
+
+      let tmp = courses;
+      for (var i = 0; i < tmp.length; i++) {
+        courses[i].price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(courses[i].price);
+        const teacher = getUserById[tmp[i].teacher_id];
+        const category = getCategoryById[tmp[i].category_id];
+        courses[i]['teacher_name'] = teacher.name;
+        courses[i]['teacher_email'] = teacher.email;
+        courses[i]['category_name'] = category.name;
+        courses[i]['number_of_subscribers'] = getSubscribersByCourseId[tmp[i]._id] ? getSubscribersByCourseId[tmp[i]._id] : 0;
+        courses[i]['point'] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
+      }
+
+      return {
+        code: courseResponseEnum.SUCCESS,
+        courses: tmp,
+      }
+    } catch (e) {
+      return {
+        code: courseResponseEnum.SERVER_ERROR
+      }
+    }
+  },
+
+  async getCoursesByName(request) {
+    try {
+      let courses = await courseRepository.getAllByName(request.keyword);
+      courses = JSON.parse(JSON.stringify(courses));
+      const subscribers = await subscriberRepository.getAll();
+      const users = await userRepository.getAll();
+      const categories = await categoryRepository.getAll();
+      let getUserById = {},
+        getCategoryById = {},
+        getSubscribersByCourseId = {},
+        getPoint = {};
+
+      users.forEach(element => {
+        getUserById[element._id] = element;
+      });
+
+      categories.forEach(element => {
+        getCategoryById[element._id] = element;
+      });
+
+      subscribers.forEach(element => {
+        if (getSubscribersByCourseId && getSubscribersByCourseId[element.course_id])
+          getSubscribersByCourseId[element.course_id] += 1;
+        else
+          getSubscribersByCourseId[element.course_id] = 1;
+      });
+
+      let num = {};
+      subscribers.forEach(element => {
+        if (getPoint && getPoint[element.course_id]) {
+          if (element.rating > 0) {
+            getPoint[element.course_id] += element.rating;
+            num[element.course_id]++;
+          }
+        } else {
+          if (element.rating > 0) {
+            getPoint[element.course_id] = element.rating;
+            num[element.course_id] = 1;
+          } else {
+            getPoint[element.course_id] = 0;
+          }
+        }
+      })
+      const ids = Object.keys(getPoint);
+      ids.forEach(element => {
+        getPoint[element] /= num[element];
+      })
+
+      let tmp = courses;
+      const date = new Date();
+      for (var i = 0; i < tmp.length; i++) {
+        const teacher = getUserById[tmp[i].teacher_id];
+        const category = getCategoryById[tmp[i].category_id];
+        courses[i]['teacher_name'] = teacher.name;
+        courses[i]['teacher_email'] = teacher.email;
+        courses[i]['category_name'] = category.name;
+        courses[i]['number_of_subscribers'] = getSubscribersByCourseId[tmp[i]._id] ? getSubscribersByCourseId[tmp[i]._id] : 0;
+        courses[i]['point'] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
+        courses[i].price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(courses[i].price);
+
+      }
+
+      return {
+        code: courseResponseEnum.SUCCESS,
+        courses: tmp,
+      }
+    } catch (e) {
+      return {
+        code: courseResponseEnum.SERVER_ERROR
+      }
+    }
+  },
 }
 
 // Handles messages events
@@ -135,8 +299,7 @@ const handleMessage = async(sender_psid, received_message) => {
   // Check if the message contains text
   if (received_message.text) {
     if (received_message.text.includes("KH: ")) {
-      const keyword = received_message.text.substr(4);
-      handleCoursesByName(keyword, sender_psid);
+      handleCoursesByNameForMessage(received_message, sender_psid);
     } else {
       // Create the payload for a basic text message
       response = sendGetStartedMenu();
@@ -145,6 +308,7 @@ const handleMessage = async(sender_psid, received_message) => {
       callSendAPI(sender_psid, response);
     }
   }
+
 }
 
 // Handles messaging_postbacks events
@@ -153,15 +317,15 @@ const handlePostback = async(sender_psid, received_postback) => {
   let response;
   // Get the payload for the postback
   let payload = received_postback.payload;
-  if (payload.includes("COURSE_BY_NAME: ")) {
-    handleCourseByName(payload, sender_psid);
-  } else if (payload.includes("COURSES: ")) {
-    const keyword = payload.substr(9);
-    handleCoursesByName(keyword, sender_psid);
-  } else if (payload.includes("CATEGORY: ")) {
+
+  if (payload.includes("CATEGORY: ")) {
     handleCoursesByCategoryId(payload, sender_psid);
   } else if (payload.includes("COURSE: ")) {
-    handleCourse(payload, sender_psid);
+    handleCourseByCategoryId(payload, sender_psid);
+  } else if (payload.includes("COURSE_BY_NAME: ")) {
+    handleCourseByName(payload, sender_psid);
+  } else if (payload.includes("COURSES_BY_NAME: ")) {
+    handleCoursesByNameForPostBack(payload, sender_psid);
   } else {
     switch (payload) {
       case 'SEARCH':
@@ -181,7 +345,6 @@ const handlePostback = async(sender_psid, received_postback) => {
         callSendAPI(sender_psid, response);
     }
   }
-
 }
 
 // Sends response messages via the Send API
@@ -218,7 +381,7 @@ const sendGetStartedMenu = () => {
       "payload": {
         "template_type": "generic",
         "elements": [{
-          "title": "Chào mừng bạn đến với khóa học trực tuyến",
+          "title": "Khóa học trực tuyến",
           "subtitle": "Dưới đây là các lựa chọn của khóa học",
           "buttons": [{
               "type": "postback",
@@ -238,20 +401,158 @@ const sendGetStartedMenu = () => {
 }
 
 const handleGetStarted = async(sender_psid) => {
-  let response, response2;
-  response = { "text": "Chào mừng bạn đến với khóa học trực tuyến" }
-  response2 = sendGetStartedMenu();
-  // Send the message to acknowledge the postback
-  callSendAPI(sender_psid, response);
-  callSendAPI(sender_psid, response2);
+  try {
+    let response, response2;
+    response = { "text": `Chào mừng bạn đến với khóa học trực tuyến` }
+    response2 = sendGetStartedMenu();
+    // Send the message to acknowledge the postback
+    callSendAPI(sender_psid, response);
+    callSendAPI(sender_psid, response2);
+  } catch (e) {
+    console.log(e);
+  }
 }
 
-const handleCoursesByName = async(keyword, sender_psid) => {
+const handleCategories = async(sender_psid) => {
   let response;
-  const result = await axios.get(`http://academy--web.herokuapp.com/api/course-controller/search?keyword=${keyword}`);
+  const result = await axios.get('https://academy--web.herokuapp.com/api/chatbot-controller/categories');
   const data = result.data;
-  if (data.code !== courseResponseEnum.SUCCESS) {
+  if (data.code !== categoryResponseEnum.SUCCESS) {
     response = { "text": "Không phản hồi, vui lòng thử lại" }
+  } else if (data.categories.length === 0) {
+    response = { "text": "Không thể tải danh mục, vui lòng thử lại" }
+  } else {
+    const categories = data.categories;
+    const buttons = [];
+    categories.map((item) => {
+      buttons.push({
+        "type": "postback",
+        "title": item.name,
+        "payload": `CATEGORY: ${item._id}`
+      });
+    })
+    const sliceButtonArray = [];
+    const chunk = 3;
+    if (buttons.length > 33) {
+      for (var i = 0; i < 33; i += chunk) {
+        sliceButtonArray.push(buttons.slice(i, i + chunk));
+      }
+    } else {
+      for (var i = 0; i < buttons.length; i += chunk) {
+        sliceButtonArray.push(buttons.slice(i, i + chunk));
+      }
+    }
+    const elements = [];
+    sliceButtonArray.map((item) => {
+      item = JSON.stringify(item);
+      elements.push({
+        "title": "Danh mục khóa học",
+        "subtitle": "Dưới đây là các danh mục",
+        "buttons": `${item}`,
+      })
+    })
+
+    const jsonString = JSON.stringify(elements);
+    response = {
+      "attachment": {
+        "type": "template",
+        "payload": {
+          "template_type": "generic",
+          "elements": `${jsonString}`
+        }
+      }
+    }
+  }
+  callSendAPI(sender_psid, response);
+}
+
+const handleCoursesByCategoryId = async(payload, sender_psid) => {
+  let response;
+  const category_id = payload.substr(10);
+  const result = await axios.get(`https://academy--web.herokuapp.com/api/chatbot-controller/courses/${category_id}`);
+  const data = result.data;
+  if (data.code !== categoryResponseEnum.SUCCESS) {
+    response = { "text": "Không phản hồi, vui lòng thử lại" }
+  } else if (data.courses.length === 0) {
+    response = { "text": "Không tìm thấy khóa học" }
+  } else {
+    const courses = data.courses;
+    const elements = [];
+    courses.map((item) => {
+      elements.push({
+        "title": item.name,
+        "subtitle": item.description,
+        "buttons": [{
+          "type": "postback",
+          "title": "Xem chi tiết",
+          "payload": `COURSE: ${item._id}`
+        }]
+      });
+    });
+
+    let jsonString;
+    if (elements.length > 11) {
+      const sliceElements = elements.slice(0, 11)
+      jsonString = JSON.stringify(sliceElements);
+
+    } else {
+      jsonString = JSON.stringify(elements);
+    }
+    response = {
+      "attachment": {
+        "type": "template",
+        "payload": {
+          "template_type": "generic",
+          "elements": `${jsonString}`
+        }
+      }
+    }
+  }
+  callSendAPI(sender_psid, response);
+}
+
+const handleCourseByCategoryId = async(payload, sender_psid) => {
+  let response;
+  const course_id = payload.substr(8);
+  const result = await axios.get(`https://academy--web.herokuapp.com/api/course-controller/course/${course_id}`);
+  const data = result.data;
+  if (data.code !== categoryResponseEnum.SUCCESS) {
+    response = { "text": "Không phản hồi, vui lòng thử lại" }
+  } else {
+    const course = data.course;
+    const elements = [];
+    elements.push({
+      "title": course.name,
+      "subtitle": `${course.description} | Giảng viên: ${course.teacher_name} | Giá: ${course.price} | Lượt xem: ${course.views}`,
+      "buttons": [{
+        "type": "postback",
+        "title": "Quay trở lại",
+        "payload": `CATEGORY: ${course.category_id}`
+      }]
+    });
+    const jsonString = JSON.stringify(elements);
+    response = {
+      "attachment": {
+        "type": "template",
+        "payload": {
+          "template_type": "generic",
+          "elements": `${jsonString}`
+        }
+      }
+    }
+  }
+  callSendAPI(sender_psid, response);
+}
+
+const handleCoursesByNameForMessage = async(received_message, sender_psid) => {
+  let response;
+  const keyword = received_message.text.substr(4);
+  const result = await axios.get(`https://academy--web.herokuapp.com/api/chatbot-controller/search?keyword=${keyword}`);
+  const data = result.data;
+  if (data.code !== categoryResponseEnum.SUCCESS) {
+    response = { "text": "Không phản hồi, vui lòng thử lại" }
+  } else if (data.courses.length === 0) {
+    response = { "text": "Không tìm thấy khóa học" }
   } else {
     const courses = data.courses;
     const elements = [];
@@ -292,9 +593,9 @@ const handleCoursesByName = async(keyword, sender_psid) => {
 const handleCourseByName = async(payload, sender_psid) => {
   let response;
   const array = payload.split(": ");
-  const result = await axios.get(`http://academy--web.herokuapp.com/api/course-controller/course/${array[1]}`);
+  const result = await axios.get(`https://academy--web.herokuapp.com/api/course-controller/course/${array[1]}`);
   const data = result.data;
-  if (data.code !== courseResponseEnum.SUCCESS) {
+  if (data.code !== categoryResponseEnum.SUCCESS) {
     response = { "text": "Không phản hồi, vui lòng thử lại" }
   } else {
     const course = data.course;
@@ -305,7 +606,7 @@ const handleCourseByName = async(payload, sender_psid) => {
       "buttons": [{
         "type": "postback",
         "title": "Quay trở lại",
-        "payload": `COURSES: ${array[2]}`
+        "payload": `COURSES_BY_NAME: ${array[2]}`
       }]
     });
     const jsonString = JSON.stringify(elements);
@@ -322,47 +623,12 @@ const handleCourseByName = async(payload, sender_psid) => {
   callSendAPI(sender_psid, response);
 }
 
-const handleCategories = async(sender_psid) => {
+const handleCoursesByNameForPostBack = async(payload, sender_psid) => {
   let response;
-  const result = await axios.get('https://academy--web.herokuapp.com/api/category-controller/categories');
+  const keyword = payload.substr(9);
+  const result = await axios.get(`https://academy--web.herokuapp.com/api/chatbot-controller/search?keyword=${keyword}`);
   const data = result.data;
-  if (data.code !== courseResponseEnum.SUCCESS) {
-    response = { "text": "Không phản hồi, vui lòng thử lại" }
-  } else {
-    const categories = data.categories;
-    const buttons = [];
-    categories.map((item) => {
-      buttons.push({
-        "type": "postback",
-        "title": item.name,
-        "payload": `CATEGORY: ${item._id}`
-      });
-    })
-    const sliceButtons = buttons.slice(0, 3);
-    const jsonString = JSON.stringify(sliceButtons);
-    response = {
-      "attachment": {
-        "type": "template",
-        "payload": {
-          "template_type": "generic",
-          "elements": [{
-            "title": "Danh mục khóa học",
-            "subtitle": "Dưới đây là các danh mục",
-            "buttons": `${jsonString}`,
-          }]
-        }
-      }
-    }
-  }
-  callSendAPI(sender_psid, response);
-}
-
-const handleCoursesByCategoryId = async(payload, sender_psid) => {
-  let response;
-  const category_id = payload.substr(10);
-  const result = await axios.get(`http://academy--web.herokuapp.com/api/course-controller/courses/${category_id}`);
-  const data = result.data;
-  if (data.code !== courseResponseEnum.SUCCESS) {
+  if (data.code !== categoryResponseEnum.SUCCESS) {
     response = { "text": "Không phản hồi, vui lòng thử lại" }
   } else {
     const courses = data.courses;
@@ -374,12 +640,12 @@ const handleCoursesByCategoryId = async(payload, sender_psid) => {
         "buttons": [{
           "type": "postback",
           "title": "Xem chi tiết",
-          "payload": `COURSE: ${item._id}`
+          "payload": `COURSE_BY_NAME: ${item._id}: ${keyword}`
         }]
       });
     });
 
-    let jsonString;
+    let jsonString = null;
     if (elements.length > 11) {
       const sliceElements = elements.slice(0, 11)
       jsonString = JSON.stringify(sliceElements);
@@ -397,40 +663,9 @@ const handleCoursesByCategoryId = async(payload, sender_psid) => {
       }
     }
   }
+  // Sends the response message
   callSendAPI(sender_psid, response);
 }
 
-const handleCourse = async(payload, sender_psid) => {
-  let response;
-  const course_id = payload.substr(8);
-  const result = await axios.get(`http://academy--web.herokuapp.com/api/course-controller/course/${course_id}`);
-  const data = result.data;
-  if (data.code !== courseResponseEnum.SUCCESS) {
-    response = { "text": "Không phản hồi, vui lòng thử lại" }
-  } else {
-    const course = data.course;
-    const elements = [];
-    elements.push({
-      "title": course.name,
-      "subtitle": `${course.description} | Giảng viên: ${course.teacher_name} | Giá: ${course.price} | Lượt xem: ${course.views}`,
-      "buttons": [{
-        "type": "postback",
-        "title": "Quay trở lại",
-        "payload": `CATEGORY: ${course.category_id}`
-      }]
-    });
-    const jsonString = JSON.stringify(elements);
-    response = {
-      "attachment": {
-        "type": "template",
-        "payload": {
-          "template_type": "generic",
-          "elements": `${jsonString}`
-        }
-      }
-    }
-  }
-  callSendAPI(sender_psid, response);
-}
 
 export default chatbotService;
