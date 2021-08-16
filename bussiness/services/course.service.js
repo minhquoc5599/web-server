@@ -31,9 +31,16 @@ const courseService = {
     }
   },
 
-  async getAll(page) {
+  async getAll(page, category_id, teacher_id) {
     try {
-      let courses = await _entityRepository.getAll();
+      let courses;
+      if (category_id !== 'none') {
+        courses = await courseRepository.getAllByCategoryId({ category_id: category_id });
+      } else if (teacher_id !== 'none') {
+        courses = await courseRepository.getAllByTeacherId({ teacher_id: teacher_id });
+      } else if (category_id === 'none' && teacher_id === 'none') {
+        courses = await _entityRepository.getAll();
+      }
       courses = JSON.parse(JSON.stringify(courses));
       const users = await userRepository.getAll();
       let getUserById = {};
@@ -73,7 +80,7 @@ const courseService = {
 
   async getAllByTeacherId(page, id) {
     try {
-      const courses = await courseRepository.getAllByTeacherId(id);
+      const courses = await courseRepository.getAllByTeacherId({ teacher_id: id, status: true });
       // Pagination
       const tmp = [];
       const page_number = [];
@@ -205,10 +212,10 @@ const courseService = {
         courses[i]["teacher_email"] = teacher.email;
         courses[i]["category_name"] = category.name;
         courses[i]["number_of_subscribers"] = getSubscribersByCourseId[
-          tmp[i]._id
-        ]
-          ? getSubscribersByCourseId[tmp[i]._id]
-          : 0;
+            tmp[i]._id
+          ] ?
+          getSubscribersByCourseId[tmp[i]._id] :
+          0;
         courses[i]["point"] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
       }
 
@@ -299,10 +306,10 @@ const courseService = {
         courses[i]["teacher_email"] = teacher.email;
         courses[i]["category_name"] = category.name;
         courses[i]["number_of_subscribers"] = getSubscribersByCourseId[
-          tmp[i]._id
-        ]
-          ? getSubscribersByCourseId[tmp[i]._id]
-          : 0;
+            tmp[i]._id
+          ] ?
+          getSubscribersByCourseId[tmp[i]._id] :
+          0;
         courses[i]["point"] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
         const createdAt = new Date(courses[i].createdAt);
         const diffDate = Math.abs(date - createdAt);
@@ -436,10 +443,10 @@ const courseService = {
         courses[i]["teacher_email"] = teacher.email;
         courses[i]["category_name"] = category.name;
         courses[i]["number_of_subscribers"] = getSubscribersByCourseId[
-          tmp[i]._id
-        ]
-          ? getSubscribersByCourseId[tmp[i]._id]
-          : 0;
+            tmp[i]._id
+          ] ?
+          getSubscribersByCourseId[tmp[i]._id] :
+          0;
         courses[i]["point"] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
       }
 
@@ -516,6 +523,7 @@ const courseService = {
     try {
       let courses = await courseRepository.getAllByCategoryId({
         category_id: request.category_id,
+        status: true
       });
       courses = JSON.parse(JSON.stringify(courses));
       const subscribers = await subscriberRepository.getAll();
@@ -576,10 +584,10 @@ const courseService = {
         courses[i]["teacher_email"] = teacher.email;
         courses[i]["category_name"] = category.name;
         courses[i]["number_of_subscribers"] = getSubscribersByCourseId[
-          tmp[i]._id
-        ]
-          ? getSubscribersByCourseId[tmp[i]._id]
-          : 0;
+            tmp[i]._id
+          ] ?
+          getSubscribersByCourseId[tmp[i]._id] :
+          0;
         courses[i]["point"] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
       }
       courses.sort(

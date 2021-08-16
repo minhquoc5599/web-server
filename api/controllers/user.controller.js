@@ -79,12 +79,20 @@ router.put('/user', auth(["admin"]), async(req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 })
 
-router.post('/teacher', auth(), async(req, res) => {
+router.post('/teacher', auth(['admin']), async(req, res) => {
   const { email, name } = req.body;
   const result = await userService.addOne(email, name);
   if (result.code !== userResponseEnum.SUCCESS) {
     return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
   }
   res.status(httpStatusCode.SUCCESS.CREATED).end();
+})
+
+router.get('/teachers', auth(['admin']), async(req, res) => {
+  const result = await userService.getAllByRoleTeacher();
+  if (result.code !== userResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
+  }
+  res.status(httpStatusCode.SUCCESS.OK).json(result).end();
 })
 export default router;

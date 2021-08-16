@@ -4,8 +4,8 @@ const courseRepository = {
   //CREATE
 
   //READ
-  getAllByTeacherId(id) {
-    return Course.find({ teacher_id: id, status: true });
+  getAllByTeacherId(query) {
+    return Course.find(query);
   },
 
   getAllByCategoryId(query) {
