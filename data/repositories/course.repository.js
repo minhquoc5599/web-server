@@ -16,6 +16,10 @@ const courseRepository = {
     return Course.find({ status: true });
   },
 
+  getOneById(id) {
+    return Course.findOne({ _id: id, status: true });
+  },
+
   getAllByName(name) {
     return Course.find({ $text: { $search: name }, status: true });
   },

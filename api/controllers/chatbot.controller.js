@@ -44,4 +44,15 @@ router.get('/search', async(req, res) => {
   }
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 });
+
+router.get('/course/:id', async(req, res) => {
+  const id = req.params.id || 0;
+  const result = await chatbotService.getCourseById(id);
+  if (result.code !== courseResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
+      .json(result)
+      .end();
+  }
+  res.status(httpStatusCode.SUCCESS.OK).json(result);
+});
 export default router;

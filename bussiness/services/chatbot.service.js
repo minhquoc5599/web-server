@@ -155,9 +155,8 @@ const chatbotService = {
       const categories = await categoryRepository.getAll();
       let getUserById = {},
         getCategoryById = {},
-        getSubscribersByCourseId = {},
-        getPoint = {};
-
+        getPoint = {},
+        num = {};
       users.forEach(element => {
         getUserById[element._id] = element;
       });
@@ -166,14 +165,6 @@ const chatbotService = {
         getCategoryById[element._id] = element;
       });
 
-      subscribers.forEach(element => {
-        if (getSubscribersByCourseId && getSubscribersByCourseId[element.course_id])
-          getSubscribersByCourseId[element.course_id] += 1;
-        else
-          getSubscribersByCourseId[element.course_id] = 1;
-      });
-
-      let num = {};
       subscribers.forEach(element => {
         if (getPoint && getPoint[element.course_id]) {
           if (element.rating > 0) {
@@ -202,7 +193,7 @@ const chatbotService = {
         courses[i]['teacher_name'] = teacher.name;
         courses[i]['teacher_email'] = teacher.email;
         courses[i]['category_name'] = category.name;
-        courses[i]['number_of_subscribers'] = getSubscribersByCourseId[tmp[i]._id] ? getSubscribersByCourseId[tmp[i]._id] : 0;
+        courses[i]['number_of_subscribers'] = num[tmp[i]._id] ? num[tmp[i]._id] : 0;;
         courses[i]['point'] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
       }
 
@@ -226,9 +217,8 @@ const chatbotService = {
       const categories = await categoryRepository.getAll();
       let getUserById = {},
         getCategoryById = {},
-        getSubscribersByCourseId = {},
-        getPoint = {};
-
+        getPoint = {},
+        num = {};
       users.forEach(element => {
         getUserById[element._id] = element;
       });
@@ -237,14 +227,7 @@ const chatbotService = {
         getCategoryById[element._id] = element;
       });
 
-      subscribers.forEach(element => {
-        if (getSubscribersByCourseId && getSubscribersByCourseId[element.course_id])
-          getSubscribersByCourseId[element.course_id] += 1;
-        else
-          getSubscribersByCourseId[element.course_id] = 1;
-      });
 
-      let num = {};
       subscribers.forEach(element => {
         if (getPoint && getPoint[element.course_id]) {
           if (element.rating > 0) {
@@ -273,7 +256,7 @@ const chatbotService = {
         courses[i]['teacher_name'] = teacher.name;
         courses[i]['teacher_email'] = teacher.email;
         courses[i]['category_name'] = category.name;
-        courses[i]['number_of_subscribers'] = getSubscribersByCourseId[tmp[i]._id] ? getSubscribersByCourseId[tmp[i]._id] : 0;
+        courses[i]['number_of_subscribers'] = num[tmp[i]._id] ? num[tmp[i]._id] : 0;;
         courses[i]['point'] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
         courses[i].price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(courses[i].price);
 
@@ -289,6 +272,34 @@ const chatbotService = {
       }
     }
   },
+  async getCourseById(id) {
+    try {
+      let course = await courseRepository.getOneById(id);
+      const subscribers = await subscriberRepository.getAllByCourseId(course._id);
+      let point = 0;
+      let num = 0;
+      for (var i = 0; i < subscribers.length; i++) {
+        if (subscribers[i].rating > 0) {
+          point = point + subscribers[i].rating;
+          num++;
+        }
+      }
+      point /= num;
+      const teacher = await userRepository.getOneById(course.teacher_id);
+      course = JSON.parse(JSON.stringify(course));
+      course['teacher_name'] = teacher.name;
+      course['teacher_email'] = teacher.email;
+      course['number_of_subscribers'] = subscribers.length;
+      course['point'] = point;
+      course.price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.price);
+      return {
+        code: courseResponseEnum.SUCCESS,
+        course
+      }
+    } catch (e) {
+      return { code: courseResponseEnum.SERVER_ERROR }
+    }
+  }
 }
 
 // Handles messages events
@@ -482,6 +493,7 @@ const handleCoursesByCategoryId = async(payload, sender_psid) => {
       elements.push({
         "title": item.name,
         "subtitle": item.description,
+        "image_url": item.image,
         "buttons": [{
           "type": "postback",
           "title": "Xem chi tiết",
@@ -514,7 +526,7 @@ const handleCoursesByCategoryId = async(payload, sender_psid) => {
 const handleCourseByCategoryId = async(payload, sender_psid) => {
   let response;
   const course_id = payload.substr(8);
-  const result = await axios.get(`https://academy--web.herokuapp.com/api/course-controller/course/${course_id}`);
+  const result = await axios.get(`https://academy--web.herokuapp.com/api/chatbot-controller/course/${course_id}`);
   const data = result.data;
   if (data.code !== categoryResponseEnum.SUCCESS) {
     response = { "text": "Không phản hồi, vui lòng thử lại" }
@@ -523,7 +535,8 @@ const handleCourseByCategoryId = async(payload, sender_psid) => {
     const elements = [];
     elements.push({
       "title": course.name,
-      "subtitle": `${course.description} | Giảng viên: ${course.teacher_name} | Giá: ${course.price} | Lượt xem: ${course.views}`,
+      "subtitle": `${course.description} | Giảng viên: ${course.teacher_name} | Giá: ${course.price} | Lượt xem: ${course.views} | Đánh giá: ${course.point}`,
+      "image_url": course.image,
       "buttons": [{
         "type": "postback",
         "title": "Quay trở lại",
@@ -560,6 +573,7 @@ const handleCoursesByNameForMessage = async(received_message, sender_psid) => {
       elements.push({
         "title": item.name,
         "subtitle": item.description,
+        "image_url": item.image,
         "buttons": [{
           "type": "postback",
           "title": "Xem chi tiết",
@@ -593,7 +607,7 @@ const handleCoursesByNameForMessage = async(received_message, sender_psid) => {
 const handleCourseByName = async(payload, sender_psid) => {
   let response;
   const array = payload.split(": ");
-  const result = await axios.get(`https://academy--web.herokuapp.com/api/course-controller/course/${array[1]}`);
+  const result = await axios.get(`https://academy--web.herokuapp.com/api/chatbot-controller/course/${array[1]}`);
   const data = result.data;
   if (data.code !== categoryResponseEnum.SUCCESS) {
     response = { "text": "Không phản hồi, vui lòng thử lại" }
@@ -602,7 +616,8 @@ const handleCourseByName = async(payload, sender_psid) => {
     const elements = [];
     elements.push({
       "title": course.name,
-      "subtitle": `${course.description} | Giảng viên: ${course.teacher_name} | Giá: ${course.price} | Lượt xem: ${course.views}`,
+      "subtitle": `${course.description} | Giảng viên: ${course.teacher_name} | Giá: ${course.price} | Lượt xem: ${course.views} | Đánh giá: ${course.point}`,
+      "image_url": course.image,
       "buttons": [{
         "type": "postback",
         "title": "Quay trở lại",
@@ -637,6 +652,7 @@ const handleCoursesByNameForPostBack = async(payload, sender_psid) => {
       elements.push({
         "title": item.name,
         "subtitle": item.description,
+        "image_url": item.image,
         "buttons": [{
           "type": "postback",
           "title": "Xem chi tiết",

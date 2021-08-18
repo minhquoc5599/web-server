@@ -159,9 +159,8 @@ const courseService = {
       const categories = await categoryRepository.getAll();
       let getUserById = {},
         getCategoryById = {},
-        getSubscribersByCourseId = {},
-        getPoint = {};
-
+        getPoint = {},
+        num = {};
       users.forEach((element) => {
         getUserById[element._id] = element;
       });
@@ -169,17 +168,6 @@ const courseService = {
       categories.forEach((element) => {
         getCategoryById[element._id] = element;
       });
-
-      subscribers.forEach((element) => {
-        if (
-          getSubscribersByCourseId &&
-          getSubscribersByCourseId[element.course_id]
-        )
-          getSubscribersByCourseId[element.course_id] += 1;
-        else getSubscribersByCourseId[element.course_id] = 1;
-      });
-
-      let num = {};
       subscribers.forEach((element) => {
         if (getPoint && getPoint[element.course_id]) {
           if (element.rating > 0) {
@@ -211,11 +199,7 @@ const courseService = {
         courses[i]["teacher_name"] = teacher.name;
         courses[i]["teacher_email"] = teacher.email;
         courses[i]["category_name"] = category.name;
-        courses[i]["number_of_subscribers"] = getSubscribersByCourseId[
-            tmp[i]._id
-          ] ?
-          getSubscribersByCourseId[tmp[i]._id] :
-          0;
+        courses[i]["number_of_subscribers"] = num[tmp[i]._id] ? num[tmp[i]._id] : 0;
         courses[i]["point"] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
       }
 
@@ -256,9 +240,8 @@ const courseService = {
       const categories = await categoryRepository.getAll();
       let getUserById = {},
         getCategoryById = {},
-        getSubscribersByCourseId = {},
-        getPoint = {};
-
+        getPoint = {},
+        num = {};
       users.forEach((element) => {
         getUserById[element._id] = element;
       });
@@ -267,16 +250,6 @@ const courseService = {
         getCategoryById[element._id] = element;
       });
 
-      subscribers.forEach((element) => {
-        if (
-          getSubscribersByCourseId &&
-          getSubscribersByCourseId[element.course_id]
-        )
-          getSubscribersByCourseId[element.course_id] += 1;
-        else getSubscribersByCourseId[element.course_id] = 1;
-      });
-
-      let num = {};
       subscribers.forEach((element) => {
         if (getPoint && getPoint[element.course_id]) {
           if (element.rating > 0) {
@@ -305,11 +278,7 @@ const courseService = {
         courses[i]["teacher_name"] = teacher.name;
         courses[i]["teacher_email"] = teacher.email;
         courses[i]["category_name"] = category.name;
-        courses[i]["number_of_subscribers"] = getSubscribersByCourseId[
-            tmp[i]._id
-          ] ?
-          getSubscribersByCourseId[tmp[i]._id] :
-          0;
+        courses[i]["number_of_subscribers"] = num[tmp[i]._id] ? num[tmp[i]._id] : 0;
         courses[i]["point"] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
         const createdAt = new Date(courses[i].createdAt);
         const diffDate = Math.abs(date - createdAt);
@@ -395,23 +364,14 @@ const courseService = {
       const subscribers = await subscriberRepository.getAll();
       let getUserById = {},
         getCategoryById = {},
-        getSubscribersByCourseId = {},
-        getPoint = {};
+        getPoint = {},
+        num = {};
       users.forEach((element) => {
         getUserById[element._id] = element;
       });
       categories.forEach((element) => {
         getCategoryById[element._id] = element;
       });
-      subscribers.forEach((element) => {
-        if (
-          getSubscribersByCourseId &&
-          getSubscribersByCourseId[element.course_id]
-        )
-          getSubscribersByCourseId[element.course_id] += 1;
-        else getSubscribersByCourseId[element.course_id] = 1;
-      });
-      let num = {};
       subscribers.forEach((element) => {
         if (getPoint && getPoint[element.course_id]) {
           if (element.rating > 0) {
@@ -442,11 +402,7 @@ const courseService = {
         courses[i]["teacher_name"] = teacher.name;
         courses[i]["teacher_email"] = teacher.email;
         courses[i]["category_name"] = category.name;
-        courses[i]["number_of_subscribers"] = getSubscribersByCourseId[
-            tmp[i]._id
-          ] ?
-          getSubscribersByCourseId[tmp[i]._id] :
-          0;
+        courses[i]["number_of_subscribers"] = num[tmp[i]._id] ? num[tmp[i]._id] : 0;
         courses[i]["point"] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
       }
 
@@ -531,9 +487,8 @@ const courseService = {
       const categories = await categoryRepository.getAll();
       let getUserById = {},
         getCategoryById = {},
-        getSubscribersByCourseId = {},
-        getPoint = {};
-
+        getPoint = {},
+        num = {};
       users.forEach((element) => {
         getUserById[element._id] = element;
       });
@@ -542,16 +497,6 @@ const courseService = {
         getCategoryById[element._id] = element;
       });
 
-      subscribers.forEach((element) => {
-        if (
-          getSubscribersByCourseId &&
-          getSubscribersByCourseId[element.course_id]
-        )
-          getSubscribersByCourseId[element.course_id] += 1;
-        else getSubscribersByCourseId[element.course_id] = 1;
-      });
-
-      let num = {};
       subscribers.forEach((element) => {
         if (getPoint && getPoint[element.course_id]) {
           if (element.rating > 0) {
@@ -583,11 +528,7 @@ const courseService = {
         courses[i]["teacher_name"] = teacher.name;
         courses[i]["teacher_email"] = teacher.email;
         courses[i]["category_name"] = category.name;
-        courses[i]["number_of_subscribers"] = getSubscribersByCourseId[
-            tmp[i]._id
-          ] ?
-          getSubscribersByCourseId[tmp[i]._id] :
-          0;
+        courses[i]["number_of_subscribers"] = num[tmp[i]._id] ? num[tmp[i]._id] : 0;;
         courses[i]["point"] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
       }
       courses.sort(
