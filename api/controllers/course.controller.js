@@ -102,9 +102,21 @@ router.get("/most-subscribed-courses", async (req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 });
 
-router.post("/course", async (req, res) => {
-  const { image } = req.body;
-  const result = await courseService.addOne({ image });
+router.post("/course", auth(["teacher"]), async (req, res) => {
+  const { image, name, categoryId, price, detail, description } = req.body;
+  const teacher_id = req.user.id;
+  const result = await courseService.addOne({
+    teacher_id,
+    image,
+    name,
+    categoryId,
+    price,
+    detail,
+    description,
+  });
+  if (result.code !== courseResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).end();
+  }
   res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
 });
 

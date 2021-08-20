@@ -1,13 +1,15 @@
 import cloudinary from "cloudinary";
 
-import Course from "../../models/course.js";
 import User from "../../models/user.js";
+import Course from "../../models/course.js";
+import courseValidator from "../../api/validators/courseValidator.js";
 import courseResponseEnum from "../../utils/enums/courseResponseEnum.js";
+import courseRepository from "../../data/repositories/course.repository.js";
 import entityRepository from "../../data/repositories/entity.repository.js";
+import categoryResponseEnum from "../../utils/enums/categoryResponseEnum.js";
 import categoryRepository from "../../data/repositories/category.repository.js";
 import subscriberRepository from "../../data/repositories/subscriber.repository.js";
-import categoryResponseEnum from "../../utils/enums/categoryResponseEnum.js";
-import courseRepository from "../../data/repositories/course.repository.js";
+
 const _entityRepository = entityRepository(Course);
 const userRepository = entityRepository(User);
 
@@ -20,14 +22,46 @@ cloudinary.config({
 const courseService = {
   async addOne(request) {
     try {
-      const result = await cloudinary.v2.uploader.upload(request.image, {
-        resource_type: "video",
+      const resultValidator = courseValidator.addOne(request.name);
+      if (resultValidator.code !== courseResponseEnum.SUCCESS) {
+        return resultValidator;
+      }
+      let image =
+        "https://res.cloudinary.com/drzosgsbu/image/upload/v1629406485/rptgtpxd-1396254731_nejtl3.jpg";
+
+      if (
+        request.image !== undefined &&
+        request.image !== "" &&
+        request.image !== null
+      ) {
+        const result = await cloudinary.v2.uploader.upload(request.image, {
+          // resource_type: "video",
+        });
+        image = result.secure_url;
+      }
+      const category = await categoryRepository.getOneById(request.categoryId);
+
+      const course = new Course({
+        name: request.name,
+        image: image,
+        price: request.price,
+        detail: request.detail,
+        description: request.description,
+        discount: 0,
+        teacher_id: request.teacher_id,
+        root_category_id: category.root_category_id,
+        category_id: request.categoryId,
+        status: true,
+        is_completed: false,
+        views: 0,
       });
-      console.log(result.secure_url);
-      return result;
+      await course.save();
+      return {
+        code: courseResponseEnum.SUCCESS,
+      };
     } catch (e) {
       console.log(e);
-      return e;
+      return { code: courseResponseEnum.SERVER_ERROR };
     }
   },
 
