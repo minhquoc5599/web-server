@@ -67,9 +67,8 @@ const watchListService = {
       let getWatchListByCourseId = {},
         getUserById = {},
         getCategoryById = {},
-        getSubscribersByCourseId = {},
-        getPoint = {};
-
+        getPoint = {},
+        num = {};
       watch_lists.forEach(element => {
         getWatchListByCourseId[element.course_id] = element;
       });
@@ -81,14 +80,7 @@ const watchListService = {
         getCategoryById[element._id] = element;
       });
 
-      subscribers.forEach(element => {
-        if (getSubscribersByCourseId && getSubscribersByCourseId[element.course_id])
-          getSubscribersByCourseId[element.course_id] += 1;
-        else
-          getSubscribersByCourseId[element.course_id] = 1;
-      });
 
-      let num = {};
       subscribers.forEach(element => {
         if (getPoint && getPoint[element.course_id]) {
           if (element.rating > 0) {
@@ -113,13 +105,12 @@ const watchListService = {
       let courseWatchList = [];
       for (var i = 0; i < tmp.length; i++) {
         if (getWatchListByCourseId[tmp[i]._id]) {
-          courses[i].price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(courses[i].price);
           const teacher = getUserById[tmp[i].teacher_id];
           const category = getCategoryById[tmp[i].category_id];
           courses[i]['teacher_name'] = teacher.name;
           courses[i]['teacher_email'] = teacher.email;
           courses[i]['category_name'] = category.name;
-          courses[i]['number_of_subscribers'] = getSubscribersByCourseId[tmp[i]._id] ? getSubscribersByCourseId[tmp[i]._id] : 0;
+          courses[i]['number_of_subscribers'] = num[tmp[i]._id] ? num[tmp[i]._id] : 0;
           courses[i]['point'] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
           courseWatchList.push(courses[i]);
         }

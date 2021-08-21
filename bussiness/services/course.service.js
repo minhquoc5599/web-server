@@ -120,10 +120,6 @@ const courseService = {
       }
       const teacher = await userRepository.getOneById(course.teacher_id);
       course = JSON.parse(JSON.stringify(course));
-      course.price = new Intl.NumberFormat("vi-VN", {
-        style: "currency",
-        currency: "VND",
-      }).format(course.price);
       course["teacher_name"] = teacher.name;
       course["teacher_email"] = teacher.email;
       return {
@@ -190,10 +186,6 @@ const courseService = {
 
       let tmp = courses;
       for (var i = 0; i < tmp.length; i++) {
-        courses[i].price = new Intl.NumberFormat("vi-VN", {
-          style: "currency",
-          currency: "VND",
-        }).format(courses[i].price);
         const teacher = getUserById[tmp[i].teacher_id];
         const category = getCategoryById[tmp[i].category_id];
         courses[i]["teacher_name"] = teacher.name;
@@ -322,13 +314,6 @@ const courseService = {
         }
       }
 
-      for (var i = 0; i < tmp.length; i++) {
-        courses[i].price = new Intl.NumberFormat("vi-VN", {
-          style: "currency",
-          currency: "VND",
-        }).format(courses[i].price);
-      }
-
       // Pagination
       tmp = [];
       const page_number = [];
@@ -393,10 +378,6 @@ const courseService = {
       });
       let tmp = courses;
       for (var i = 0; i < tmp.length; i++) {
-        courses[i].price = new Intl.NumberFormat("vi-VN", {
-          style: "currency",
-          currency: "VND",
-        }).format(courses[i].price);
         const teacher = getUserById[tmp[i].teacher_id];
         const category = getCategoryById[tmp[i].category_id];
         courses[i]["teacher_name"] = teacher.name;
@@ -519,16 +500,12 @@ const courseService = {
 
       let tmp = courses;
       for (var i = 0; i < tmp.length; i++) {
-        courses[i].price = new Intl.NumberFormat("vi-VN", {
-          style: "currency",
-          currency: "VND",
-        }).format(courses[i].price);
         const teacher = getUserById[tmp[i].teacher_id];
         const category = getCategoryById[tmp[i].category_id];
         courses[i]["teacher_name"] = teacher.name;
         courses[i]["teacher_email"] = teacher.email;
         courses[i]["category_name"] = category.name;
-        courses[i]["number_of_subscribers"] = num[tmp[i]._id] ? num[tmp[i]._id] : 0;;
+        courses[i]["number_of_subscribers"] = num[tmp[i]._id] ? num[tmp[i]._id] : 0;
         courses[i]["point"] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
       }
       courses.sort(

@@ -9,6 +9,7 @@ import categoryRepository from "../../data/repositories/category.repository.js";
 import subscriberRepository from "../../data/repositories/subscriber.repository.js";
 import categoryResponseEnum from "../../utils/enums/categoryResponseEnum.js";
 import courseRepository from "../../data/repositories/course.repository.js";
+import { htmlToText } from '../../utils/htmlToText.js';
 const userRepository = entityRepository(User);
 
 
@@ -23,7 +24,7 @@ const chatbotService = {
     if (body.object === 'page') {
 
       // Iterates over each entry - there may be multiple if batched
-      body.entry.forEach(function(entry) {
+      body.entry.forEach(function (entry) {
 
         // Gets the body of the webhook event
         let webhook_event = entry.messaging[0];
@@ -155,8 +156,9 @@ const chatbotService = {
       const categories = await categoryRepository.getAll();
       let getUserById = {},
         getCategoryById = {},
-        getPoint = {},
-        num = {};
+        getSubscribersByCourseId = {},
+        getPoint = {};
+
       users.forEach(element => {
         getUserById[element._id] = element;
       });
@@ -165,6 +167,14 @@ const chatbotService = {
         getCategoryById[element._id] = element;
       });
 
+      subscribers.forEach(element => {
+        if (getSubscribersByCourseId && getSubscribersByCourseId[element.course_id])
+          getSubscribersByCourseId[element.course_id] += 1;
+        else
+          getSubscribersByCourseId[element.course_id] = 1;
+      });
+
+      let num = {};
       subscribers.forEach(element => {
         if (getPoint && getPoint[element.course_id]) {
           if (element.rating > 0) {
@@ -193,8 +203,10 @@ const chatbotService = {
         courses[i]['teacher_name'] = teacher.name;
         courses[i]['teacher_email'] = teacher.email;
         courses[i]['category_name'] = category.name;
-        courses[i]['number_of_subscribers'] = num[tmp[i]._id] ? num[tmp[i]._id] : 0;;
+        courses[i]['number_of_subscribers'] = getSubscribersByCourseId[tmp[i]._id] ? getSubscribersByCourseId[tmp[i]._id] : 0;
         courses[i]['point'] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
+        courses[i].description = htmlToText(courses[i].description);
+        courses[i].detail = htmlToText(courses[i].detail);
       }
 
       return {
@@ -217,8 +229,9 @@ const chatbotService = {
       const categories = await categoryRepository.getAll();
       let getUserById = {},
         getCategoryById = {},
-        getPoint = {},
-        num = {};
+        getSubscribersByCourseId = {},
+        getPoint = {};
+
       users.forEach(element => {
         getUserById[element._id] = element;
       });
@@ -227,7 +240,14 @@ const chatbotService = {
         getCategoryById[element._id] = element;
       });
 
+      subscribers.forEach(element => {
+        if (getSubscribersByCourseId && getSubscribersByCourseId[element.course_id])
+          getSubscribersByCourseId[element.course_id] += 1;
+        else
+          getSubscribersByCourseId[element.course_id] = 1;
+      });
 
+      let num = {};
       subscribers.forEach(element => {
         if (getPoint && getPoint[element.course_id]) {
           if (element.rating > 0) {
@@ -256,10 +276,11 @@ const chatbotService = {
         courses[i]['teacher_name'] = teacher.name;
         courses[i]['teacher_email'] = teacher.email;
         courses[i]['category_name'] = category.name;
-        courses[i]['number_of_subscribers'] = num[tmp[i]._id] ? num[tmp[i]._id] : 0;;
+        courses[i]['number_of_subscribers'] = getSubscribersByCourseId[tmp[i]._id] ? getSubscribersByCourseId[tmp[i]._id] : 0;
         courses[i]['point'] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
         courses[i].price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(courses[i].price);
-
+        courses[i].description = htmlToText(courses[i].description);
+        courses[i].detail = htmlToText(courses[i].detail);
       }
 
       return {
@@ -292,6 +313,8 @@ const chatbotService = {
       course['number_of_subscribers'] = subscribers.length;
       course['point'] = point;
       course.price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.price);
+      course.description = htmlToText(course.description);
+      course.detail = htmlToText(course.detail);
       return {
         code: courseResponseEnum.SUCCESS,
         course
@@ -303,7 +326,7 @@ const chatbotService = {
 }
 
 // Handles messages events
-const handleMessage = async(sender_psid, received_message) => {
+const handleMessage = async (sender_psid, received_message) => {
 
   let response;
 
@@ -323,7 +346,7 @@ const handleMessage = async(sender_psid, received_message) => {
 }
 
 // Handles messaging_postbacks events
-const handlePostback = async(sender_psid, received_postback) => {
+const handlePostback = async (sender_psid, received_postback) => {
 
   let response;
   // Get the payload for the postback
@@ -352,7 +375,7 @@ const handlePostback = async(sender_psid, received_postback) => {
         break;
       default:
         response = { "text": `Tôi không hiểu yêu cầu ${payload} của bạn` }
-          // Send the message to acknowledge the postback
+        // Send the message to acknowledge the postback
         callSendAPI(sender_psid, response);
     }
   }
@@ -395,15 +418,15 @@ const sendGetStartedMenu = () => {
           "title": "Khóa học trực tuyến",
           "subtitle": "Dưới đây là các lựa chọn của khóa học",
           "buttons": [{
-              "type": "postback",
-              "title": "Tìm kiếm khóa học",
-              "payload": "SEARCH",
-            },
-            {
-              "type": "postback",
-              "title": "Duyệt khóa học",
-              "payload": "CATEGORY",
-            },
+            "type": "postback",
+            "title": "Tìm kiếm khóa học",
+            "payload": "SEARCH",
+          },
+          {
+            "type": "postback",
+            "title": "Duyệt khóa học",
+            "payload": "CATEGORY",
+          },
           ],
         }]
       }
@@ -411,7 +434,7 @@ const sendGetStartedMenu = () => {
   }
 }
 
-const handleGetStarted = async(sender_psid) => {
+const handleGetStarted = async (sender_psid) => {
   try {
     let response, response2;
     response = { "text": `Chào mừng bạn đến với khóa học trực tuyến` }
@@ -424,7 +447,7 @@ const handleGetStarted = async(sender_psid) => {
   }
 }
 
-const handleCategories = async(sender_psid) => {
+const handleCategories = async (sender_psid) => {
   let response;
   const result = await axios.get('https://academy--web.herokuapp.com/api/chatbot-controller/categories');
   const data = result.data;
@@ -477,7 +500,7 @@ const handleCategories = async(sender_psid) => {
   callSendAPI(sender_psid, response);
 }
 
-const handleCoursesByCategoryId = async(payload, sender_psid) => {
+const handleCoursesByCategoryId = async (payload, sender_psid) => {
   let response;
   const category_id = payload.substr(10);
   const result = await axios.get(`https://academy--web.herokuapp.com/api/chatbot-controller/courses/${category_id}`);
@@ -523,7 +546,7 @@ const handleCoursesByCategoryId = async(payload, sender_psid) => {
   callSendAPI(sender_psid, response);
 }
 
-const handleCourseByCategoryId = async(payload, sender_psid) => {
+const handleCourseByCategoryId = async (payload, sender_psid) => {
   let response;
   const course_id = payload.substr(8);
   const result = await axios.get(`https://academy--web.herokuapp.com/api/chatbot-controller/course/${course_id}`);
@@ -557,7 +580,7 @@ const handleCourseByCategoryId = async(payload, sender_psid) => {
   callSendAPI(sender_psid, response);
 }
 
-const handleCoursesByNameForMessage = async(received_message, sender_psid) => {
+const handleCoursesByNameForMessage = async (received_message, sender_psid) => {
   let response;
   const keyword = received_message.text.substr(4);
   const result = await axios.get(`https://academy--web.herokuapp.com/api/chatbot-controller/search?keyword=${keyword}`);
@@ -604,7 +627,7 @@ const handleCoursesByNameForMessage = async(received_message, sender_psid) => {
   callSendAPI(sender_psid, response);
 }
 
-const handleCourseByName = async(payload, sender_psid) => {
+const handleCourseByName = async (payload, sender_psid) => {
   let response;
   const array = payload.split(": ");
   const result = await axios.get(`https://academy--web.herokuapp.com/api/chatbot-controller/course/${array[1]}`);
@@ -638,7 +661,7 @@ const handleCourseByName = async(payload, sender_psid) => {
   callSendAPI(sender_psid, response);
 }
 
-const handleCoursesByNameForPostBack = async(payload, sender_psid) => {
+const handleCoursesByNameForPostBack = async (payload, sender_psid) => {
   let response;
   const keyword = payload.substr(9);
   const result = await axios.get(`https://academy--web.herokuapp.com/api/chatbot-controller/search?keyword=${keyword}`);
