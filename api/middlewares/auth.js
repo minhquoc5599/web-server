@@ -37,7 +37,6 @@ const auth = (roles = []) => {
       const exp = decoded.user.exp;
       if (dateNow >= exp * 1000) {
         const user = await _entityRepository.getOneById(decoded.user.id);
-        console.log(user);
         const refreshTokenExpiryTime = user.refresh_token_expiry_time;
         if (
           refreshToken !== user.refresh_token ||

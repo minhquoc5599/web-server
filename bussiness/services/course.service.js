@@ -147,10 +147,10 @@ const courseService = {
       }
       const teacher = await userRepository.getOneById(course.teacher_id);
       course = JSON.parse(JSON.stringify(course));
-      course.price = new Intl.NumberFormat("vi-VN", {
-        style: "currency",
-        currency: "VND",
-      }).format(course.price);
+      // course.price = new Intl.NumberFormat("vi-VN", {
+      //   style: "currency",
+      //   currency: "VND",
+      // }).format(course.price);
       course["teacher_name"] = teacher.name;
       course["teacher_email"] = teacher.email;
       return {
