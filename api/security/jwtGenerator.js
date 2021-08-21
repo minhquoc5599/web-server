@@ -15,7 +15,7 @@ const jwtGenerator = {
         id: user.id,
         name: user.name,
         role: role.name,
-        exp: Math.floor(Date.now() / 1000) + 30,
+        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 2,
         iat: Math.floor(Date.now()),
       },
     };
