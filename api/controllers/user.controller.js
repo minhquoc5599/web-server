@@ -94,6 +94,18 @@ router.get("/users", auth(), async (req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result).end();
 });
 
+router.put("/update-user", auth(), async (req, res) => {
+  const { email, password, name } = req.body;
+  const result = await userService.updateUser(email, password, name);
+  if (result.code !== logInResponseEnum.SUCCESS) {
+    return res
+      .status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
+      .json(result)
+      .end();
+  }
+  return res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
+});
+
 router.put("/user", auth(["admin"]), async (req, res) => {
   const { id, status } = req.body;
   const result = await userService.updateOneById({ id: id, status: status });
