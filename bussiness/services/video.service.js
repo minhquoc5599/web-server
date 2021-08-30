@@ -10,6 +10,7 @@ const videoService = {
     try {
       let url = "";
       const resultValidator = videoValidator.addOne(
+        request.courseId,
         request.title,
         request.video
       );
@@ -21,7 +22,7 @@ const videoService = {
       });
       url = result.secure_url;
       const video = new Video({
-        courseId: request.courseId,
+        course_id: request.courseId,
         title: request.title,
         video: url,
         is_previewed: request.isPreviewed,

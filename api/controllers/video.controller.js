@@ -23,12 +23,13 @@ router.delete("/video/:id", auth(["teacher"]), async (req, res) => {
 
 router.post("/video", auth(["teacher"]), async (req, res) => {
   const { courseId, video, title, isPreviewed } = req.body;
-  const result = await courseService.addVideo({
+  const result = await videoService.addOne({
     courseId,
     video,
     title,
     isPreviewed,
   });
+  console.log(result);
   if (result.code !== videoResponseEnum.SUCCESS) {
     return res
       .status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
