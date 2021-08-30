@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import auth from "../middlewares/auth.js";
-import video from "../../models/video.js";
+import Video from "../../models/video.js";
 import httpStatusCode from "../../utils/enums/httpStatusCode.js";
 import videoService from "../../bussiness/services/video.service.js";
 import videoResponseEnum from "../../utils/enums/videoResponseEnum.js";
@@ -11,7 +11,7 @@ const router = Router();
 router.delete("/video/:id", auth(["teacher"]), async (req, res) => {
   const id = req.params.id;
   try {
-    const video = await Video.find({ _id: id }).exec();
+    const video = await Video.findOne({ _id: id });
     video.status = false;
     await video.save();
     return res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
