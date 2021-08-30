@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 
 import User from "../../models/user.js";
 import jwtEnum from "../../utils/enums/jwtEnum.js";
+import jwtGenerator from "../security/jwtGenerator.js";
 import httpStatusCode from "../../utils/enums/httpStatusCode.js";
 import entityRepository from "../../data/repositories/entity.repository.js";
 
@@ -33,7 +34,7 @@ const auth = (roles = []) => {
           .json({ code: jwtEnum.UNAUTHORIZED })
           .end();
       }
-      const exp = decoded.exp;
+      const exp = decoded.user.exp;
       if (dateNow >= exp * 1000) {
         const user = await _entityRepository.getOneById(decoded.user.id);
         const refreshTokenExpiryTime = user.refresh_token_expiry_time;
@@ -48,6 +49,14 @@ const auth = (roles = []) => {
             })
             .end();
         }
+        const resultJwtGenerator = await jwtGenerator.createToken(user);
+        res.cookie("access_token", resultJwtGenerator.accessToken, {
+          sameSite: "none",
+          secure: true,
+          maxAge: 5259600000,
+          path: "/",
+          httpOnly: true,
+        });
       }
       req.user = decoded.user;
       next();

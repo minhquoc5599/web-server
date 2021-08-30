@@ -1,10 +1,11 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
 var videoSchema = new Schema({
-  course_id: { type: Schema.Types.ObjectId, ref: 'course', require: true },
+  course_id: { type: Schema.Types.ObjectId, ref: "course", require: true },
   title: { type: String, max: 100, require: true },
   video: { type: String, require: true },
-  is_previewed: { type: Boolean, require: true, default: false }
+  is_previewed: { type: Boolean, require: true, default: false },
+  status: { type: Boolean, require: true, default: true },
 });
-export default mongoose.model('video', videoSchema);
+export default mongoose.model("video", videoSchema);

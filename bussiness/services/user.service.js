@@ -29,7 +29,7 @@ const userService = {
         return resultValidator;
       // Find email in DB
       const user = await userRepository.getOneByEmail(email);
-      if (!user) {
+      if (!user || user.status === false) {
         return {
           code: logInResponseEnum.WRONG_EMAIL,
         };
@@ -54,6 +54,37 @@ const userService = {
         code: logInResponseEnum.SUCCESS,
         accessToken: resultJwtGenerator.accessToken,
         refreshToken: resultJwtGenerator.refreshToken,
+      };
+    } catch (e) {
+      return {
+        code: logInResponseEnum.SERVER_ERROR,
+      };
+    }
+  },
+  async updateUser(email, password, name) {
+    // validate request
+    try {
+      const resultValidator = logInValidator(email, password);
+      console.log(password);
+      if (
+        resultValidator.code !== logInResponseEnum.SUCCESS &&
+        resultValidator.code !== logInResponseEnum.PASSWORD_IS_EMPTY
+      )
+        return resultValidator;
+      // Find email in DB
+      const user = await userRepository.getOneByEmail(email);
+      if (!user || user.status === false) {
+        return {
+          code: logInResponseEnum.WRONG_EMAIL,
+        };
+      }
+      const salt = await bcrypt.genSalt(10);
+      password = await bcrypt.hash(password, salt);
+      user.password = password;
+      user.name = name;
+      await _entityRepository.updateOne(user);
+      return {
+        code: logInResponseEnum.SUCCESS,
       };
     } catch (e) {
       return {

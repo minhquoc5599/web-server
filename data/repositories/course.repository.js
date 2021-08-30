@@ -8,6 +8,10 @@ const courseRepository = {
     return Course.find(query);
   },
 
+  getOneById(id) {
+    return Course.findOne({ _id: id, status: true });
+  },
+
   getAllByCategoryId(query) {
     return Course.find(query);
   },

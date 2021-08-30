@@ -5,17 +5,17 @@ import mongoose from "mongoose";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 
+import dotenv from "dotenv";
 import httpStatusCode from "./utils/enums/httpStatusCode.js";
 import userController from "./api/controllers/user.controller.js";
-import courseController from "./api/controllers/course.controller.js";
-import categoryController from "./api/controllers/category.controller.js";
 import roleController from "./api/controllers/role.controller.js";
-import subscriberController from "./api/controllers/subscriber.controller.js";
-import watchListController from "./api/controllers/watch_list.controller.js";
 import videoController from "./api/controllers/video.controller.js";
-import videoUserController from "./api/controllers/video_user.controller.js";
+import courseController from "./api/controllers/course.controller.js";
 import chatbotController from "./api/controllers/chatbot.controller.js";
-import dotenv from "dotenv";
+import categoryController from "./api/controllers/category.controller.js";
+import watchListController from "./api/controllers/watch_list.controller.js";
+import videoUserController from "./api/controllers/video_user.controller.js";
+import subscriberController from "./api/controllers/subscriber.controller.js";
 dotenv.config();
 
 mongoose.connect(process.env.URL_DATABASE, {
@@ -24,7 +24,7 @@ mongoose.connect(process.env.URL_DATABASE, {
 });
 
 var corsOptions = {
-  origin: "http://localhost:3000",
+  origin: ["http://localhost:3000"],
   credentials: true,
 };
 
