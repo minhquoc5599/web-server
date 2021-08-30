@@ -19,7 +19,7 @@ router.get("/teacher/categories", auth(["teacher"]), async (req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 });
 
-router.get("/categories", async (req, res) => {
+router.get('/categories/menu', async(req, res) => {
   const result = await rootCategoryService.getAll();
   if (result.code !== categoryResponseEnum.SUCCESS) {
     return res
@@ -30,7 +30,15 @@ router.get("/categories", async (req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 });
 
-router.get("/categories/:page", auth(["admin"]), async (req, res) => {
+router.get('/categories', auth(['admin', 'teacher']), async(req, res) => {
+  const result = await categoryService.getAll();
+  if (result.code !== categoryResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
+  }
+  res.status(httpStatusCode.SUCCESS.OK).json(result);
+});
+
+router.get('/categories/:page', auth(['admin']), async(req, res) => {
   const page = Number(req.params.page) || 1;
   const result = await rootCategoryService.getAllByPage(page);
   if (result.code !== categoryResponseEnum.SUCCESS) {

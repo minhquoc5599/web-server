@@ -245,6 +245,25 @@ const userService = {
       };
     }
   },
+  async getAllByRoleTeacher() {
+    try {
+      const role = await roleRepository.getOneByName('teacher');
+      if (!role) {
+        return {
+          code: roleResponseEnum.ROLE_NAME_IS_UNAVAILABLE,
+        };
+      }
+      const teachers = await userRepository.getAllByRoleId(role._id);
+      return {
+        code: userResponseEnum.SUCCESS,
+        teachers: teachers
+      }
+    } catch (e) {
+      return {
+        code: userResponseEnum.SERVER_ERROR,
+      };
+    }
+  },
 
   async updateOneById(request) {
     try {

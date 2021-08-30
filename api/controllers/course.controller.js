@@ -7,7 +7,7 @@ import courseResponseEnum from "../../utils/enums/courseResponseEnum.js";
 
 const router = Router();
 
-router.get("/teacher/courses", auth(["teacher"]), async (req, res) => {
+router.get("/teacher/courses", auth(["teacher"]), async(req, res) => {
   const page = Number(req.query.page) || 1;
   const id = req.user.id;
   const result = await courseService.getAllByTeacherId(page, id);
@@ -20,9 +20,11 @@ router.get("/teacher/courses", auth(["teacher"]), async (req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 });
 
-router.get("/courses", auth(), async (req, res) => {
+router.get("/courses", auth(['admin']), async(req, res) => {
   const page = Number(req.query.page) || 1;
-  const result = await courseService.getAll(page);
+  const category_id = req.query.categoryid;
+  const teacher_id = req.query.teacherid;
+  const result = await courseService.getAll(page, category_id, teacher_id);
   if (result.code !== courseResponseEnum.SUCCESS) {
     return res
       .status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST)
@@ -32,7 +34,7 @@ router.get("/courses", auth(), async (req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 });
 
-router.get("/course/:id", async (req, res) => {
+router.get("/course/:id", async(req, res) => {
   const id = req.params.id || "";
   const result = await courseService.getOneById({ id: id });
   if (result.code !== courseResponseEnum.SUCCESS) {
@@ -44,7 +46,7 @@ router.get("/course/:id", async (req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 });
 
-router.get("/courses-by-category-id", async (req, res) => {
+router.get("/courses/category", async(req, res) => {
   const id = req.query.categoryid;
   const page = Number(req.query.page) || 1;
   const result = await courseService.getAllByCategoryId({ id: id, page: page });
@@ -57,7 +59,7 @@ router.get("/courses-by-category-id", async (req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 });
 
-router.get("/search", async (req, res) => {
+router.get("/search", async(req, res) => {
   const keyword = req.query.keyword;
   const sort = req.query.sort || "none";
   const page = Number(req.query.page) || 1;
@@ -75,7 +77,7 @@ router.get("/search", async (req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 });
 
-router.get("/criteria", async (req, res) => {
+router.get("/criteria", async(req, res) => {
   const result = await courseService.getAllByCriteria();
   if (result.code !== courseResponseEnum.SUCCESS) {
     return res
@@ -86,7 +88,7 @@ router.get("/criteria", async (req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 });
 
-router.get("/most-subscribed-courses", async (req, res) => {
+router.get("/most-subscribed-courses", async(req, res) => {
   const category_id = req.query.categoryid;
   const id = req.query.id;
   const result = await courseService.getMostSubscribedCourses({
@@ -151,7 +153,7 @@ router.put("/course", auth(["teacher"]), async (req, res) => {
   res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
 });
 
-router.put("/course-by-teacher", auth(["teacher"]), async (req, res) => {
+router.put("/course-by-teacher", auth(["teacher"]), async(req, res) => {
   // const course = req.body;
   // const ret = await courseService.updateOne(course);
   // if (ret === operatorType.FAIL.UPDATE) {
@@ -171,7 +173,7 @@ router.put("/course-by-teacher", auth(["teacher"]), async (req, res) => {
   // res.status(httpStatusCode.SUCCESS.CREATED).json(course);
 });
 
-router.put("/course-by-admin", auth(["admin"]), async (req, res) => {
+router.put("/course-by-admin", auth(["admin"]), async(req, res) => {
   const { id, status } = req.body;
   const result = await courseService.updateOneById({ id: id, status: status });
   if (result.code !== courseResponseEnum.SUCCESS) {
@@ -183,7 +185,7 @@ router.put("/course-by-admin", auth(["admin"]), async (req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 });
 
-router.put("/course-view/:id", async (req, res) => {
+router.put("/course-view/:id", async(req, res) => {
   const id = req.params.id;
   const result = await courseService.updateView({ id: id });
   if (result.code !== courseResponseEnum.SUCCESS) {

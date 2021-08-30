@@ -109,9 +109,16 @@ const courseService = {
     }
   },
 
-  async getAll(page) {
+  async getAll(page, category_id, teacher_id) {
     try {
-      let courses = await _entityRepository.getAll();
+      let courses;
+      if (category_id !== 'none') {
+        courses = await courseRepository.getAllByCategoryId({ category_id: category_id });
+      } else if (teacher_id !== 'none') {
+        courses = await courseRepository.getAllByTeacherId({ teacher_id: teacher_id });
+      } else if (category_id === 'none' && teacher_id === 'none') {
+        courses = await _entityRepository.getAll();
+      }
       courses = JSON.parse(JSON.stringify(courses));
       const users = await userRepository.getAll();
       let getUserById = {};
@@ -151,7 +158,7 @@ const courseService = {
 
   async getAllByTeacherId(page, id) {
     try {
-      const courses = await courseRepository.getAllByTeacherId(id);
+      const courses = await courseRepository.getAllByTeacherId({ teacher_id: id, status: true });
       // Pagination
       const tmp = [];
       const page_number = [];
@@ -190,11 +197,7 @@ const courseService = {
         };
       }
       const teacher = await userRepository.getOneById(course.teacher_id);
-      course = JSON.parse(JSON.stringify(course));
-      // course.price = new Intl.NumberFormat("vi-VN", {
-      //   style: "currency",
-      //   currency: "VND",
-      // }).format(course.price);
+      course = JSON.parse(JSON.stringify(course))
       course["teacher_name"] = teacher.name;
       course["teacher_email"] = teacher.email;
       return {
@@ -230,9 +233,8 @@ const courseService = {
       const categories = await categoryRepository.getAll();
       let getUserById = {},
         getCategoryById = {},
-        getSubscribersByCourseId = {},
-        getPoint = {};
-
+        getPoint = {},
+        num = {};
       users.forEach((element) => {
         getUserById[element._id] = element;
       });
@@ -240,17 +242,6 @@ const courseService = {
       categories.forEach((element) => {
         getCategoryById[element._id] = element;
       });
-
-      subscribers.forEach((element) => {
-        if (
-          getSubscribersByCourseId &&
-          getSubscribersByCourseId[element.course_id]
-        )
-          getSubscribersByCourseId[element.course_id] += 1;
-        else getSubscribersByCourseId[element.course_id] = 1;
-      });
-
-      let num = {};
       subscribers.forEach((element) => {
         if (getPoint && getPoint[element.course_id]) {
           if (element.rating > 0) {
@@ -273,20 +264,12 @@ const courseService = {
 
       let tmp = courses;
       for (var i = 0; i < tmp.length; i++) {
-        courses[i].price = new Intl.NumberFormat("vi-VN", {
-          style: "currency",
-          currency: "VND",
-        }).format(courses[i].price);
         const teacher = getUserById[tmp[i].teacher_id];
         const category = getCategoryById[tmp[i].category_id];
         courses[i]["teacher_name"] = teacher.name;
         courses[i]["teacher_email"] = teacher.email;
         courses[i]["category_name"] = category.name;
-        courses[i]["number_of_subscribers"] = getSubscribersByCourseId[
-          tmp[i]._id
-        ]
-          ? getSubscribersByCourseId[tmp[i]._id]
-          : 0;
+        courses[i]["number_of_subscribers"] = num[tmp[i]._id] ? num[tmp[i]._id] : 0;
         courses[i]["point"] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
       }
 
@@ -327,9 +310,8 @@ const courseService = {
       const categories = await categoryRepository.getAll();
       let getUserById = {},
         getCategoryById = {},
-        getSubscribersByCourseId = {},
-        getPoint = {};
-
+        getPoint = {},
+        num = {};
       users.forEach((element) => {
         getUserById[element._id] = element;
       });
@@ -338,16 +320,6 @@ const courseService = {
         getCategoryById[element._id] = element;
       });
 
-      subscribers.forEach((element) => {
-        if (
-          getSubscribersByCourseId &&
-          getSubscribersByCourseId[element.course_id]
-        )
-          getSubscribersByCourseId[element.course_id] += 1;
-        else getSubscribersByCourseId[element.course_id] = 1;
-      });
-
-      let num = {};
       subscribers.forEach((element) => {
         if (getPoint && getPoint[element.course_id]) {
           if (element.rating > 0) {
@@ -376,11 +348,7 @@ const courseService = {
         courses[i]["teacher_name"] = teacher.name;
         courses[i]["teacher_email"] = teacher.email;
         courses[i]["category_name"] = category.name;
-        courses[i]["number_of_subscribers"] = getSubscribersByCourseId[
-          tmp[i]._id
-        ]
-          ? getSubscribersByCourseId[tmp[i]._id]
-          : 0;
+        courses[i]["number_of_subscribers"] = num[tmp[i]._id] ? num[tmp[i]._id] : 0;
         courses[i]["point"] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
         const createdAt = new Date(courses[i].createdAt);
         const diffDate = Math.abs(date - createdAt);
@@ -424,13 +392,6 @@ const courseService = {
         }
       }
 
-      for (var i = 0; i < tmp.length; i++) {
-        courses[i].price = new Intl.NumberFormat("vi-VN", {
-          style: "currency",
-          currency: "VND",
-        }).format(courses[i].price);
-      }
-
       // Pagination
       tmp = [];
       const page_number = [];
@@ -466,23 +427,14 @@ const courseService = {
       const subscribers = await subscriberRepository.getAll();
       let getUserById = {},
         getCategoryById = {},
-        getSubscribersByCourseId = {},
-        getPoint = {};
+        getPoint = {},
+        num = {};
       users.forEach((element) => {
         getUserById[element._id] = element;
       });
       categories.forEach((element) => {
         getCategoryById[element._id] = element;
       });
-      subscribers.forEach((element) => {
-        if (
-          getSubscribersByCourseId &&
-          getSubscribersByCourseId[element.course_id]
-        )
-          getSubscribersByCourseId[element.course_id] += 1;
-        else getSubscribersByCourseId[element.course_id] = 1;
-      });
-      let num = {};
       subscribers.forEach((element) => {
         if (getPoint && getPoint[element.course_id]) {
           if (element.rating > 0) {
@@ -504,20 +456,12 @@ const courseService = {
       });
       let tmp = courses;
       for (var i = 0; i < tmp.length; i++) {
-        courses[i].price = new Intl.NumberFormat("vi-VN", {
-          style: "currency",
-          currency: "VND",
-        }).format(courses[i].price);
         const teacher = getUserById[tmp[i].teacher_id];
         const category = getCategoryById[tmp[i].category_id];
         courses[i]["teacher_name"] = teacher.name;
         courses[i]["teacher_email"] = teacher.email;
         courses[i]["category_name"] = category.name;
-        courses[i]["number_of_subscribers"] = getSubscribersByCourseId[
-          tmp[i]._id
-        ]
-          ? getSubscribersByCourseId[tmp[i]._id]
-          : 0;
+        courses[i]["number_of_subscribers"] = num[tmp[i]._id] ? num[tmp[i]._id] : 0;
         courses[i]["point"] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
       }
 
@@ -594,6 +538,7 @@ const courseService = {
     try {
       let courses = await courseRepository.getAllByCategoryId({
         category_id: request.category_id,
+        status: true
       });
       courses = JSON.parse(JSON.stringify(courses));
       const subscribers = await subscriberRepository.getAll();
@@ -601,9 +546,8 @@ const courseService = {
       const categories = await categoryRepository.getAll();
       let getUserById = {},
         getCategoryById = {},
-        getSubscribersByCourseId = {},
-        getPoint = {};
-
+        getPoint = {},
+        num = {};
       users.forEach((element) => {
         getUserById[element._id] = element;
       });
@@ -612,16 +556,6 @@ const courseService = {
         getCategoryById[element._id] = element;
       });
 
-      subscribers.forEach((element) => {
-        if (
-          getSubscribersByCourseId &&
-          getSubscribersByCourseId[element.course_id]
-        )
-          getSubscribersByCourseId[element.course_id] += 1;
-        else getSubscribersByCourseId[element.course_id] = 1;
-      });
-
-      let num = {};
       subscribers.forEach((element) => {
         if (getPoint && getPoint[element.course_id]) {
           if (element.rating > 0) {
@@ -644,20 +578,12 @@ const courseService = {
 
       let tmp = courses;
       for (var i = 0; i < tmp.length; i++) {
-        courses[i].price = new Intl.NumberFormat("vi-VN", {
-          style: "currency",
-          currency: "VND",
-        }).format(courses[i].price);
         const teacher = getUserById[tmp[i].teacher_id];
         const category = getCategoryById[tmp[i].category_id];
         courses[i]["teacher_name"] = teacher.name;
         courses[i]["teacher_email"] = teacher.email;
         courses[i]["category_name"] = category.name;
-        courses[i]["number_of_subscribers"] = getSubscribersByCourseId[
-          tmp[i]._id
-        ]
-          ? getSubscribersByCourseId[tmp[i]._id]
-          : 0;
+        courses[i]["number_of_subscribers"] = num[tmp[i]._id] ? num[tmp[i]._id] : 0;
         courses[i]["point"] = getPoint[tmp[i]._id] ? getPoint[tmp[i]._id] : 0;
       }
       courses.sort(

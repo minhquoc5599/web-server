@@ -4,8 +4,8 @@ const courseRepository = {
   //CREATE
 
   //READ
-  getAllByTeacherId(id) {
-    return Course.find({ teacher_id: id, status: true });
+  getAllByTeacherId(query) {
+    return Course.find(query);
   },
 
   getOneById(id) {
@@ -18,6 +18,10 @@ const courseRepository = {
 
   getAll() {
     return Course.find({ status: true });
+  },
+
+  getOneById(id) {
+    return Course.findOne({ _id: id, status: true });
   },
 
   getAllByName(name) {
