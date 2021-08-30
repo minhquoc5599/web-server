@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import Video from "../../models/video.js";
 import auth from "../middlewares/auth.js";
 import httpStatusCode from "../../utils/enums/httpStatusCode.js";
 import courseService from "../../bussiness/services/course.service.js";
@@ -102,7 +103,42 @@ router.get("/most-subscribed-courses", async (req, res) => {
   res.status(httpStatusCode.SUCCESS.OK).json(result);
 });
 
+router.delete("/video/:id", auth(["teacher"]), async (req, res) => {
+  const id = req.params.id;
+  try {
+    const video = await Video.find({ _id: id }).exec();
+    video.status = false;
+    await video.save();
+    return res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
+  } catch (e) {
+    console.log(e);
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).end();
+  }
+});
+
+router.post("/video", auth(["teacher"]), async (req, res) => {
+  // const {video, title} =
+});
+
 router.post("/course", auth(["teacher"]), async (req, res) => {
+  const { image, name, categoryId, price, detail, description } = req.body;
+  const teacher_id = req.user.id;
+  const result = await courseService.addOne({
+    teacher_id,
+    image,
+    name,
+    categoryId,
+    price,
+    detail,
+    description,
+  });
+  if (result.code !== courseResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).end();
+  }
+  res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
+});
+
+router.put("/course", auth(["teacher"]), async (req, res) => {
   const { image, name, categoryId, price, detail, description } = req.body;
   const teacher_id = req.user.id;
   const result = await courseService.addOne({
