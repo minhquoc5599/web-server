@@ -6,19 +6,19 @@ import rootCategoryReposity from '../../data/repositories/root_category.reposito
 import courseRepository from '../../data/repositories/course.repository.js';
 
 const categoryService = {
-  // async getAll() {
-  //   try {
-  //     const categories = await categoryRepository.getAll();
-  //     return {
-  //       code: categoryResponseEnum.SUCCESS,
-  //       categories
-  //     };
-  //   } catch (e) {
-  //     return {
-  //       code: categoryResponseEnum.SERVER_ERROR
-  //     };
-  //   }
-  // },
+  async getAll() {
+    try {
+      const categories = await categoryRepository.getAll();
+      return {
+        code: categoryResponseEnum.SUCCESS,
+        categories
+      };
+    } catch (e) {
+      return {
+        code: categoryResponseEnum.SERVER_ERROR
+      };
+    }
+  },
 
   async addOne(name, root_category_id) {
     try {

@@ -7,8 +7,16 @@ import categoryResponseEnum from '../../utils/enums/categoryResponseEnum.js';
 import auth from "../middlewares/auth.js";
 
 const router = Router();
-router.get('/categories', async(req, res) => {
+router.get('/categories/menu', async(req, res) => {
   const result = await rootCategoryService.getAll();
+  if (result.code !== categoryResponseEnum.SUCCESS) {
+    return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
+  }
+  res.status(httpStatusCode.SUCCESS.OK).json(result);
+});
+
+router.get('/categories', auth(['admin']), async(req, res) => {
+  const result = await categoryService.getAll();
   if (result.code !== categoryResponseEnum.SUCCESS) {
     return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).send(result).end();
   }
