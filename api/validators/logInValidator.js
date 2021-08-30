@@ -1,5 +1,5 @@
-import logInResponseEnum from '../../utils/enums/logInResponseEnum.js';
-import emailValidator from './emailValidator.js';
+import logInResponseEnum from "../../utils/enums/logInResponseEnum.js";
+import emailValidator from "./emailValidator.js";
 
 const logInValidator = (email, password) => {
   if (!email) {
@@ -12,9 +12,12 @@ const logInValidator = (email, password) => {
     return { isSuccess: false, code: logInResponseEnum.PASSWORD_IS_EMPTY };
   }
   if (password.length < 6) {
-    return { isSuccess: false, code: logInResponseEnum.PASSWORD_IS_LESS_THAN_6_LETTERS };
+    return {
+      isSuccess: false,
+      code: logInResponseEnum.PASSWORD_IS_LESS_THAN_6_LETTERS,
+    };
   }
   return { isSuccess: true, code: logInResponseEnum.SUCCESS };
-}
+};
 
 export default logInValidator;

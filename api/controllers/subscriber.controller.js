@@ -48,7 +48,7 @@ router.get("/subscribers", auth(["student"]), async (req, res) => {
 router.put("/rating", auth(["student"]), async (req, res) => {
   const { course_id, rating, comment } = req.body;
   const student_id = req.user.id;
-  const name = user.name;
+  const name = req.user.name;
   const result = await subscriberService.rating(
     course_id,
     student_id,

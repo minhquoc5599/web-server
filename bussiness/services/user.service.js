@@ -78,9 +78,11 @@ const userService = {
           code: logInResponseEnum.WRONG_EMAIL,
         };
       }
-      const salt = await bcrypt.genSalt(10);
-      password = await bcrypt.hash(password, salt);
-      user.password = password;
+      if (resultValidator.code !== logInResponseEnum.PASSWORD_IS_EMPTY) {
+        const salt = await bcrypt.genSalt(10);
+        password = await bcrypt.hash(password, salt);
+        user.password = password;
+      }
       user.name = name;
       await _entityRepository.updateOne(user);
       return {
@@ -247,7 +249,7 @@ const userService = {
   },
   async getAllByRoleTeacher() {
     try {
-      const role = await roleRepository.getOneByName('teacher');
+      const role = await roleRepository.getOneByName("teacher");
       if (!role) {
         return {
           code: roleResponseEnum.ROLE_NAME_IS_UNAVAILABLE,
@@ -256,8 +258,8 @@ const userService = {
       const teachers = await userRepository.getAllByRoleId(role._id);
       return {
         code: userResponseEnum.SUCCESS,
-        teachers: teachers
-      }
+        teachers: teachers,
+      };
     } catch (e) {
       return {
         code: userResponseEnum.SERVER_ERROR,
