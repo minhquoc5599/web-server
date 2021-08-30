@@ -121,16 +121,29 @@ router.post("/course", auth(["teacher"]), async (req, res) => {
 });
 
 router.put("/course", auth(["teacher"]), async (req, res) => {
-  const { image, name, categoryId, price, detail, description } = req.body;
-  const teacher_id = req.user.id;
-  const result = await courseService.addOne({
-    teacher_id,
-    image,
+  const {
+    id,
     name,
     categoryId,
     price,
+    image,
     detail,
     description,
+    discount,
+    isCompleted,
+  } = req.body;
+  const teacher_id = req.user.id;
+  const result = await courseService.updateOne({
+    id,
+    teacher_id,
+    name,
+    categoryId,
+    price,
+    image,
+    detail,
+    description,
+    discount,
+    isCompleted,
   });
   if (result.code !== courseResponseEnum.SUCCESS) {
     return res.status(httpStatusCode.CLIENT_ERRORS.BAD_REQUEST).end();

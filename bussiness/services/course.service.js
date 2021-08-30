@@ -65,6 +65,50 @@ const courseService = {
     }
   },
 
+  async updateOne(request) {
+    try {
+      console.log(request);
+      const resultValidator = courseValidator.addOne(request.name);
+      if (resultValidator.code !== courseResponseEnum.SUCCESS) {
+        return resultValidator;
+      }
+      let image =
+        "https://res.cloudinary.com/drzosgsbu/image/upload/v1629406485/rptgtpxd-1396254731_nejtl3.jpg";
+
+      if (
+        request.image !== undefined &&
+        request.image !== "" &&
+        request.image !== null
+      ) {
+        const result = await cloudinary.v2.uploader.upload(request.image, {
+          // resource_type: "video",
+        });
+        image = result.secure_url;
+      }
+      const category = await categoryRepository.getOneById(request.categoryId);
+      const course = await courseRepository.getOneById(request.id);
+
+      course.name = request.name;
+      course.image = image;
+      course.price = request.price;
+      course.detail = request.detail;
+      course.description = request.description;
+      course.discount = request.discount;
+      course.teacher_id = request.teacher_id;
+      course.root_category_id = category.root_category_id;
+      course.category_id = request.categoryId;
+      course.is_completed = request.isCompleted;
+
+      await course.save();
+      return {
+        code: courseResponseEnum.SUCCESS,
+      };
+    } catch (e) {
+      console.log(e);
+      return { code: courseResponseEnum.SERVER_ERROR };
+    }
+  },
+
   async getAll(page) {
     try {
       let courses = await _entityRepository.getAll();
@@ -638,15 +682,6 @@ const courseService = {
     } catch (e) {
       return { code: courseResponseEnum.SERVER_ERROR };
     }
-  },
-
-  updateOne(request) {
-    // if (this.isCountryAvailable(country.country_id)) {
-    //   return _entityRepository.updateOne(country, country.country_id);
-    // }
-    // else {
-    //   return operatorType.NOT_AVAILABLE;
-    // }
   },
 
   async updateOneById(request) {
