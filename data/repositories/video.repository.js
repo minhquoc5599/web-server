@@ -1,4 +1,4 @@
-import Video from '../../models/video.js';
+import Video from "../../models/video.js";
 
 const videoRepository = {
   //CREATE
@@ -8,7 +8,7 @@ const videoRepository = {
 
   //READ
   getAllByCourseId(course_id) {
-    return Video.find({ course_id: course_id });
+    return Video.find({ course_id: course_id, status: true });
   },
   getOneById(id) {
     return Video.findById(id);
@@ -25,7 +25,7 @@ const videoRepository = {
   //DELETE
   deleteOne(id) {
     return Video.deleteOne({ _id: id });
-  }
-}
+  },
+};
 
 export default videoRepository;
