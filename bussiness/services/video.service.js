@@ -1,33 +1,39 @@
-import Video from '../../models/video.js';
-import videoResponseEnum from '../../utils/enums/videoResponseEnum.js';
-import videoRepository from '../../data/repositories/video.repository.js';
-import videoValidator from '../../api/validators/videoValidator.js';
+import cloudinary from "cloudinary";
+
+import Video from "../../models/video.js";
+import videoValidator from "../../api/validators/videoValidator.js";
+import videoResponseEnum from "../../utils/enums/videoResponseEnum.js";
+import videoRepository from "../../data/repositories/video.repository.js";
 
 const videoService = {
-  async addOne(course_id, title, video, is_previewed) {
+  async addOne(request) {
     try {
-      // Validate request
-      const resultValidator = videoValidator.addValidator(course_id, title, video);
-      if (resultValidator.code !== videoResponseEnum.VALIDATOR_IS_SUCCESS) return resultValidator;
-
-      // Check name title
-      let addVideo = await videoRepository.getOneByTitle(title);
-      if (addVideo) {
-        return {
-          code: videoResponseEnum.TITLE_IS_UNAVAILABLE
-        };
+      let url = "";
+      const resultValidator = videoValidator.addOne(
+        request.title,
+        request.video
+      );
+      if (resultValidator.code !== videoResponseEnum.SUCCESS) {
+        return resultValidator;
       }
-
-      addVideo = new Video({ course_id, title, video, is_previewed });
-      const addResult = await videoRepository.addOne(addVideo);
+      const result = await cloudinary.v2.uploader.upload(request.video, {
+        resource_type: "video",
+      });
+      url = result.secure_url;
+      const video = new Video({
+        courseId: request.courseId,
+        title: request.title,
+        video: url,
+        is_previewed: request.isPreviewed,
+        status: true,
+      });
+      await video.save();
       return {
         code: videoResponseEnum.SUCCESS,
-        video: addResult
       };
     } catch (e) {
-      return {
-        code: videoResponseEnum.SERVER_ERROR
-      };
+      console.log(e);
+      return { code: videoResponseEnum.SERVER_ERROR };
     }
   },
 
@@ -36,21 +42,20 @@ const videoService = {
       const videos = await videoRepository.getAllByCourseId(course_id);
       return {
         code: videoResponseEnum.SUCCESS,
-        videos
-      }
+        videos,
+      };
     } catch (e) {
       return {
-        code: videoResponseEnum.SERVER_ERROR
+        code: videoResponseEnum.SERVER_ERROR,
       };
     }
   },
 
   async updateOne(id, title, video, is_previewed) {
     try {
-
     } catch (e) {
       return {
-        code: videoResponseEnum.SERVER_ERROR
+        code: videoResponseEnum.SERVER_ERROR,
       };
     }
   },
@@ -61,21 +66,21 @@ const videoService = {
       const video = await videoRepository.getOneById(id);
       if (!video) {
         return {
-          code: videoResponseEnum.ID_IS_EMPTY
+          code: videoResponseEnum.ID_IS_EMPTY,
         };
       }
 
       // Delete video
       const del = await videoRepository.deleteOne(id);
       return {
-        code: videoResponseEnum.SUCCESS
+        code: videoResponseEnum.SUCCESS,
       };
     } catch (e) {
       return {
-        code: videoResponseEnum.SERVER_ERROR
+        code: videoResponseEnum.SERVER_ERROR,
       };
     }
-  }
-}
+  },
+};
 
 export default videoService;

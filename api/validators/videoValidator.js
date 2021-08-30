@@ -1,7 +1,7 @@
 import videoResponseEnum from "../../utils/enums/videoResponseEnum.js";
 
 const videoValidator = {
-  addValidator(course_id, title, video) {
+  addOne(course_id, title, video) {
     if (!course_id) {
       return {
         code: videoResponseEnum.COURSE_ID_IS_EMPTY,

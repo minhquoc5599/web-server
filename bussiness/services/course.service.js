@@ -9,8 +9,6 @@ import entityRepository from "../../data/repositories/entity.repository.js";
 import categoryResponseEnum from "../../utils/enums/categoryResponseEnum.js";
 import categoryRepository from "../../data/repositories/category.repository.js";
 import subscriberRepository from "../../data/repositories/subscriber.repository.js";
-import videoValidator from "../../api/validators/videoValidator.js";
-import videoResponseEnum from "../../utils/enums/videoResponseEnum.js";
 
 const _entityRepository = entityRepository(Course);
 const userRepository = entityRepository(User);
@@ -64,38 +62,6 @@ const courseService = {
     } catch (e) {
       console.log(e);
       return { code: courseResponseEnum.SERVER_ERROR };
-    }
-  },
-
-  async addVideo(request) {
-    try {
-      let url = "";
-      const resultValidator = videoValidator.addOne(
-        request.title,
-        request.video
-      );
-      if (resultValidator.code !== videoResponseEnum.SUCCESS) {
-        return resultValidator;
-      }
-      const result = await cloudinary.v2.uploader.upload(request.video, {
-        resource_type: "video",
-      });
-      url = result.secure_url;
-
-      const video = new Course({
-        courseId: request.courseId,
-        title: request.title,
-        video: url,
-        is_previewed: true,
-        status: true,
-      });
-      await video.save();
-      return {
-        code: videoResponseEnum.SUCCESS,
-      };
-    } catch (e) {
-      console.log(e);
-      return { code: videoResponseEnum.SERVER_ERROR };
     }
   },
 
