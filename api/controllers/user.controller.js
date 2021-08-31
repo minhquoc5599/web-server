@@ -55,15 +55,19 @@ router.post("/confirmation/:token", async (req, res) => {
 });
 
 router.delete("/refresh-token", auth(), async (req, res) => {
-  res.clearCookie("refresh_token", {
-    path: "/",
+  res.cookie("access_token", "", {
     sameSite: "none",
     secure: true,
+    maxAge: 5259600000,
+    path: "/",
+    httpOnly: true,
   });
-  res.clearCookie("access_token", {
-    path: "/",
+  res.cookie("refresh_token", "", {
     sameSite: "none",
     secure: true,
+    maxAge: 5259600000,
+    path: "/",
+    httpOnly: true,
   });
   res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
 });
