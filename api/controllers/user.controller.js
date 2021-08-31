@@ -55,8 +55,16 @@ router.post("/confirmation/:token", async (req, res) => {
 });
 
 router.delete("/refresh-token", auth(), async (req, res) => {
-  res.clearCookie("refresh_token", { path: "/" });
-  res.clearCookie("access_token", { path: "/" });
+  res.clearCookie("refresh_token", {
+    path: "/",
+    sameSite: "none",
+    secure: true,
+  });
+  res.clearCookie("access_token", {
+    path: "/",
+    sameSite: "none",
+    secure: true,
+  });
   res.status(httpStatusCode.SUCCESS.NO_CONTENT).end();
 });
 
